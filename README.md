@@ -24,3 +24,4 @@ We explain provide all the notebooks used to report the results in the paper.
 - **Preliminary study results:** Execute the `preliminary_study.ipynb` notebook to generate the preliminary study results.
 - **Evaluation results of the 1st model:** Execute the `run_model1.ipynb` notebook to generate the evaluation results of the 1st model.
 - **Evaluation results of the 2nd model:** Execute the `run_model2.ipynb` notebook to generate the evaluation results of the 2nd model.
+- **Statistical tests:** Execute the `stats_test.ipynb` notebook to generate the statistical tests for different observations in the paper.
