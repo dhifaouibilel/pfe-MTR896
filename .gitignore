@@ -1,0 +1,10 @@
+__pycache__/
+/utils/__pycache__/
+/doc2vec_model*
+.Rproj.user
+.DS_Store
+pairs.csv
+temp/
+/doc2vec
+/Files/Data/*
+combined_output.csv

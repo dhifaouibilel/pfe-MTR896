@@ -1,0 +1,380 @@
+number,worked_revisions,reason,comment,reviewer_suggest
+156691,1.0,Refactoring,,0.0
+161355,1.0,Code enhancement,,0.0
+175394,1.0,Code enhancement,,0.0
+181260,1.0,Tests,,0.0
+182072,1.0,Configuration,,0.0
+187015,1.0,Dependency,,0.0
+188912,1.0,New features,,0.0
+193455,1.0,Dependency,,0.0
+194999,2.0,Configuration,"Missing pipeline-job, the developer is unfamiliar with the project as this is change his first change in the project ('Requirements'). R1: I don't see requirements check jobs configured for these projects in openstack-infra/project-config. Please set those up first and make sure you're in sync with the global requirements, before adding this patch. R2: There's no check-requirements job for these projects. Please add the jobs to project-config first. D: I sent a patch adding check-requirements jobs as you requested: [216161] Please let me know if anything else is missing.",1.0
+196783,1.0,Configuration,,0.0
+197212,3.0,Refactoring,,0.0
+197672,1.0,Renaming,"Missing dependency: Developer had few changes in the change's project (13/926), hence, they are unfamiliar. R1: Doug, this change has a depends-on the renaming change... D: OK, I missed the depends-on there.",1.0
+199846,3.0,"Code enhancement,Tests","Developer is unfamiliar with project as they have only one change, hence, the reviewer who is more familiar in the Cinder project (35 changes) suggested adding such a dependency 'Need a cross project dependency on the change in Cinder: [url]'",1.0
+202983,1.0,Code enhancement,,0.0
+219448,1.0,Tests,,0.0
+219825,2.0,Configuration,,0.0
+228530,2.0,Docs,Deps was suggested by the change's owner in 1st patch. It depends on the https://review.openstack.org/#/c/228488/,0.0
+230340,1.0,Test,update_preview functional test,
+232785,5.0,Configuration,"But it depnds on the understanding of the task, commit message of the change with the depanecy added contain more detailed descriotion than the first change. I think the understanding the consequences of changed files plays important role",0.0
+234312,1.0,Configuration,,0.0
+234764,1.0,Renaming,,0.0
+246322,21.0,Refactoring,"The change seems to be complex (+1604, -6445 lines added and deleted, respectively), there have been many build failures and received huge assistance from the reviewer making them unfamiliar with the project as they have only (5/109) changes",0.0
+248853,2.0,Dependency,,0.0
+251865,1.0,Dependency,,0.0
+257350,4.0,Tests,,0.0
+259097,17.0,Code enhancement,"The change may be missed because the change is quite complex (-28, +98 lines of code). One reviewer explicitely mentioned that 'Also, I'd split this into separate patches to deal with create and update, that would make this easier to digest from the review side, and making sure we have adequate unit test coverage for each function.'",0.0
+260709,1.0,Tests,,0.0
+261994,3.0,Configuration,Inconsistent Depends-On assignment. Depends-On have been altering across different patches.,0.0
+263785,5.0,Code enhancement,"Developer is unaware of chnages without proper changes as stated by 'I want to +2 this, but I'm worried about communicating the change without good release notes.'",0.0
+272298,11.0,Configuration,,0.0
+275669,1.0,Refactoring,,0.0
+280315,2.0,Dependency,No missing deps: Needed_by replaced by Depends-On,0.0
+283736,1.0,Tests,,0.0
+285233,5.0,New features,Complex change (+640): A reviewer Please left the comments Depends-On: I328a698f2109841e1e122e17fea4b345c4179161 to the commit message,1.0
+286310,1.0,Code enhancement,,0.0
+288104,1.0,Configuration,,0.0
+290275,1.0,New features,,0.0
+292201,1.0,Docs,,0.0
+292909,2.0,Code enhancement,,0.0
+294440,5.0,Tests,Unsure about the missing dependency. Added Depends-On tag on project-config change,0.0
+295932,2.0,Refactoring,N/A,0.0
+298498,1.0,New features,,0.0
+298603,6.0,Dependency,"Was added 27 min after the 1st patch. However, the developer mistyped the right tage to use: 'Make the depends the other way round - first remove it here, then remove from infra.'",0.0
+303890,3.0,Dependency,,0.0
+303968,4.0,"New features,Tests","Complex change (184 added lines). This changes is the developer's first contribution to this project. Therefore, they are unfamiliar compared to the reviewer sho suggested the Depends-On had more 650 changes in the same project. 'Added a Depends-On line to the commit message, so CI actually runs these.'",1.0
+306053,2.0,Refactoring,,0.0
+310940,1.0,New features,,0.0
+312744,1.0,Configuration,,0.0
+314769,2.0,Refactoring,,0.0
+315296,3.0,Configuration,"Deps wasn't missed, but it was added since there is a need for it.",0.0
+318521,1.0,Configuration,"Deps wasn't missed, but it was added since there is a need for it.",0.0
+319430,1.0,Configuration,,0.0
+325208,6.0,New features,"The developer types the wrong Depends-On ID; 'I think this should point to the patch adding API, not ovs driver. The right ID is: I6b619a96a2bfde164646c71409b671352bc6ce7d'",1.0
+328770,1.0,Docs,,0.0
+330896,1.0,Dependency,Pending dependent change can cause some intent delays: 'DependsOn has not merged yet' for the review to start off,0.0
+336477,1.0,Moving resources,,0.0
+346983,1.0,Configuration,,0.0
+349408,3.0,Configuration,,0.0
+353012,4.0,Refactoring,"Inconsistent Depends-On tag assignment, changes ketp changing across patches.",0.0
+353653,2.0,Configuration,,0.0
+355147,1.0,Configuration,,0.0
+358333,2.0,Dependency,Wrongly tag naming (missing letter d): Neede-By -> Needed-By,0.0
+365518,1.0,Dependency,,0.0
+373428,1.0,Refactoring,,0.0
+388085,3.0,Dependency,,0.0
+389308,1.0,Code enhancement,,0.0
+392971,1.0,Configuration,,0.0
+393121,2.0,Dependency,"Developer is unaware of the policy when bumping the version of a project: 'Adding Depends-On: to the corresponding change in the openstack/requirements repo, see https://wiki.openstack.org/wiki/Rpm-packaging/ReviewGuidelines#Version_bumps'",1.0
+394068,2.0,Docs,The project is very complex as it is about writing a documentation page on how to install openstack cli,0.0
+395640,9.0,Tests,,0.0
+396939,3.0,Docs,"Complex change (-422, +429): Since this isn't priority I can take over if needed, since it will take some leg work. There also has to be a better way. Will look into it Monday",0.0
+397805,2.0,New features,,0.0
+398456,1.0,Configuration,,0.0
+401337,1.0,Dependency,,0.0
+402221,3.0,Configuration,,0.0
+406059,19.0,Code enhancement,"Complex change (-246, +67): 'I will set the dependencies and configure our CI to make the patch be tested in our CI with green'",1.0
+407304,1.0,Code enhancement,,0.0
+409062,1.0,Refactoring,,0.0
+409071,7.0,Dependency,,0.0
+409949,4.0,Tests,Complex change (+176 lines added),0.0
+413545,8.0,Tests,,0.0
+417693,1.0,Dependency,,0.0
+421636,2.0,Renaming,,0.0
+421934,4.0,Dependency,"The developer of the change is unfamiliar with the depend-change's project (0 change), hence a reviewer suggested the following: 'added a depends-on to a keystone patch that should ignore the deprecation messages produced by the new oslo.context'",1.0
+424366,2.0,Configuration,"Other changes were tackling the same problem in the same project which the developer unaware of (lack of coordination), hence a reviewer suggested the following: Hi, I think that 3 people posted changes trying to fix that problem. Here are the changes: [424309, 424063]",1.0
+425786,1.0,Tests,,0.0
+426320,1.0,Renaming,,0.0
+427836,3.0,Configuration,,0.0
+429050,1.0,Configuration,,0.0
+429218,2.0,Tests,,0.0
+429224,1.0,Tests,,0.0
+431443,1.0,New features,Happy we now have the Depends-On mechanism,0.0
+437676,1.0,New features,,0.0
+440009,1.0,Tests,,0.0
+440019,1.0,Tests,,0.0
+440657,2.0,Tests,Depends-On has been wrongly assigned in the first patch: 'We should probably test against this: [440739]',0.0
+440842,1.0,Moving resources,,0.0
+446718,1.0,Configuration,,0.0
+447627,17.0,New features,"The developer is not familiar with the two depednnt changes, in which they have no contribution and Complex change (+107 added lines) which is about a new service for depolying containers",1.0
+455149,2.0,Refactoring,,0.0
+457491,2.0,Dependency,,0.0
+458201,3.0,Refactoring,'A lot of failures related to oslo.config update; would be fixed after merging https://review.openstack.org/#/c/465093/',1.0
+462609,1.0,Refactoring,,0.0
+464124,2.0,New features,,0.0
+467608,1.0,Configuration,,0.0
+469981,152.0,New features,Complex changes (+2425) which involve a new major feature related 'Designate',0.0
+473081,3.0,Configuration,Complex changes (+2425) which involve a new major feature related 'Designate',0.0
+473804,1.0,Configuration,Developer is unfamiliar with the project in the dependency (0 change),0.0
+474782,1.0,Configuration,,0.0
+474896,1.0,Configuration,,0.0
+476109,2.0,Tests,,0.0
+479130,1.0,Moving resources,,0.0
+483059,1.0,Configuration,,0.0
+484152,1.0,Code enhancement,,0.0
+484295,1.0,New features,,0.0
+487657,1.0,New features,,0.0
+488253,1.0,Configuration,,0.0
+488258,3.0,Dependency,"Created by bot, but uploaded by a human",0.0
+489947,1.0,Dependency,,0.0
+490963,4.0,Tests,,0.0
+492788,1.0,Dependency,,0.0
+493098,2.0,Configuration,,0.0
+500600,1.0,Tests,,0.0
+502548,2.0,Tests,,0.0
+504182,5.0,New features,,0.0
+507353,3.0,Dependency,,0.0
+508691,1.0,Configuration,,0.0
+508785,15.0,Dependency,,0.0
+510429,1.0,Dependency,,0.0
+510731,1.0,Configuration,,0.0
+512836,2.0,Dependency,,0.0
+513485,1.0,Moving resources,,0.0
+513548,2.0,Moving resources,,0.0
+514496,22.0,Tests,,0.0
+514837,2.0,Configuration,,0.0
+515020,7.0,Configuration,,0.0
+517673,1.0,New features,,0.0
+518018,5.0,Docs,,0.0
+518286,1.0,Dependency,,0.0
+518308,2.0,Tests,,0.0
+518829,1.0,Dependency,,0.0
+519567,5.0,Dependency,,0.0
+519843,1.0,Configuration,,0.0
+519888,1.0,Configuration,,0.0
+519913,1.0,Configuration,,0.0
+522033,4.0,Configuration,,0.0
+522573,1.0,New features,,0.0
+523280,1.0,Configuration,,0.0
+523359,4.0,Moving resources,,0.0
+524317,2.0,Refactoring,,0.0
+526017,2.0,Refactoring,,0.0
+527970,1.0,Configuration,,0.0
+528649,1.0,Configuration,,0.0
+528650,1.0,Moving resources,,0.0
+532813,3.0,Refactoring,,0.0
+535311,3.0,Tests,,0.0
+536354,1.0,Code enhancement,,0.0
+536798,1.0,Renaming,,0.0
+536980,4.0,Docs,,0.0
+537611,2.0,Moving resources,,0.0
+540670,1.0,Moving resources,,0.0
+540777,1.0,Dependency,,0.0
+542064,2.0,New features,,0.0
+544531,1.0,Configuration,,0.0
+546057,2.0,New features,,0.0
+546260,4.0,Dependency,,0.0
+548359,1.0,Refactoring,,0.0
+549878,1.0,Refactoring,,0.0
+557042,2.0,Code enhancement,"It has been abandoned, then reopened where the deps has been added",0.0
+557452,1.0,Tests,,0.0
+558436,1.0,Refactoring,,0.0
+558584,2.0,Refactoring,Dependency was added 7 min after the 1st patch was published,0.0
+558762,23.0,Configuration,Dependency was added 7 min after the 1st patch was published,0.0
+559182,4.0,Configuration,,0.0
+559235,2.0,Docs,,0.0
+559244,2.0,Docs,,0.0
+563180,1.0,Refactoring,,0.0
+563326,2.0,Dependency,Deps was added 20 min after the 1st patchset,0.0
+563777,1.0,Configuration,,0.0
+565817,1.0,Refactoring,,0.0
+566366,10.0,New features,,0.0
+567891,1.0,Moving resources,,0.0
+568089,2.0,Configuration,"The developer has no idea that same changes should be done to other projects. Hence, the reviewer suggested: 'Please add release note. Also we need to update defaults in THT/docker/services/octavia/octavia-deployment-config.yaml. Create such patch and make this patch dependent on it.'",1.0
+568581,2.0,Configuration,,0.0
+570074,8.0,Configuration,,0.0
+571540,1.0,Dependency,,0.0
+571751,1.0,Refactoring,,0.0
+571776,1.0,Refactoring,,0.0
+571938,1.0,Configuration,,0.0
+572986,14.0,Configuration,,0.0
+573496,5.0,Dependency,,0.0
+574853,1.0,Configuration,,0.0
+578742,3.0,Configuration,,0.0
+578963,1.0,Dependency,,0.0
+582288,2.0,Refactoring,The developer was working on two depenednt changes at the same time.,0.0
+583262,3.0,Code enhancement,The developer was working on two depenednt changes at the same time.,0.0
+588562,1.0,Dependency,,0.0
+593489,1.0,Configuration,,0.0
+596280,1.0,Dependency,,0.0
+600901,2.0,Tests,,0.0
+601231,2.0,Configuration,Deps was added 3min after 1st patch,0.0
+601488,1.0,Dependency,,0.0
+603275,8.0,Tests,,0.0
+604360,1.0,New features,,0.0
+609567,2.0,Docs,The developer mentioned the dep in 1st path and was added instantly to 2nd patch: Yup this was discovered when Thierry tried to switch the election repo to use openstackdocstheme in https://review.openstack.org/#/c/607538/,0.0
+609846,2.0,Configuration,added 8min of the 1st patch,0.0
+609956,1.0,Renaming,,0.0
+609960,1.0,Docs,,0.0
+613158,1.0,Tests,,0.0
+613503,4.0,Code enhancement,,0.0
+615898,2.0,Configuration,added 31 min after 1st patch,0.0
+617195,2.0,Dependency,added 16 min after 1st patch,0.0
+619984,2.0,Configuration,Uploaded 8min after 1st patch,0.0
+626648,1.0,Refactoring,,0.0
+626733,1.0,Refactoring,,0.0
+630514,1.0,Configuration,,0.0
+634885,2.0,Configuration,added 1h after 1st patch,0.0
+635179,1.0,Refactoring,added 1h after 1st patch,0.0
+637160,2.0,Configuration,added 1m after 1st patch,0.0
+637203,2.0,"New features,Tests",added 1m after 1st patch,0.0
+638722,1.0,Configuration,,0.0
+639847,1.0,Configuration,,0.0
+641307,1.0,Configuration,,0.0
+642321,2.0,Refactoring,,0.0
+643200,1.0,Refactoring,,0.0
+643887,1.0,Configuration,,0.0
+648104,2.0,Configuration,added 3min after 1st patch,0.0
+648413,2.0,New features,added 8min after 1st patch,0.0
+650934,1.0,Moving resources,,0.0
+652342,1.0,"Configuration,Renaming",,0.0
+654580,1.0,Refactoring,,0.0
+656124,1.0,Refactoring,,0.0
+657577,1.0,Code enhancement,,0.0
+658434,1.0,Renaming,,0.0
+658523,12.0,"Configuration,Renaming",Deps have been added across different patches,0.0
+660385,1.0,Refactoring,"Deps-On is irrelevant, commit msg mentions: The Depends-On isn't really necessary, but it's here to make sure this doesn't merge until we _really_ have killed cells v1.",0.0
+662734,1.0,Renaming,,0.0
+664542,6.0,New features,,0.0
+665827,2.0,Refactoring,,0.0
+666183,2.0,Refactoring,,0.0
+667577,1.0,Refactoring,,0.0
+671902,1.0,Configuration,,0.0
+676421,3.0,Dependency,"An OpenStack expert suggests to create depedent change since this change is adding a new project: 'So, will this be part of an official OpenStack project? Please add governance change and link to it via needed-by'",0.0
+677154,2.0,Refactoring,added 30min after 1st change,0.0
+677479,3.0,Dependency,,0.0
+677483,2.0,Tests,,0.0
+677979,1.0,Refactoring,,0.0
+678655,3.0,Refactoring,,0.0
+679416,1.0,New features,,0.0
+680724,1.0,Refactoring,,0.0
+681370,1.0,Tests,,0.0
+681802,3.0,Dependency,,0.0
+688021,1.0,"New features,Tests",,0.0
+688666,1.0,Refactoring,,0.0
+688822,1.0,Configuration,"Even it has a depends-on in 1st patch, it faces some dalays as a reviewer this comment: 'Not approving as the depends on hasn't been approved yet.'",0.0
+689814,1.0,Tests,,0.0
+690620,1.0,Refactoring,,0.0
+690630,1.0,Dependency,No guarrantee things would work fine even with depends-On as a reviewer left this: 'This is going to fail ci even with the depends-on because of upper-constraints. Once the oslo.policy patch has been released it should be good to go though.',0.0
+690686,2.0,Refactoring,added 14min after 1st patch,0.0
+690898,1.0,Tests,,0.0
+694737,1.0,Tests,,0.0
+696070,7.0,New features,"The developer had limited experience in the second dependent project (2 changes in Nuetron), while a an expert reviewer in the same project suggested such a dependency: 'It would also be nice to have: Needed-By: [572767]",1.0
+696390,55.0,Refactoring,,0.0
+698247,1.0,New features,,0.0
+700934,1.0,Dependency,,0.0
+701048,2.0,"New features,Tests",,0.0
+704914,1.0,Tests,,0.0
+705191,1.0,Tests,,0.0
+705793,1.0,Refactoring,,0.0
+707298,1.0,Refactoring,,0.0
+708569,1.0,"New features,Tests",Can cause delays even dependency is added. Rev: 'Not merged in master yet.',0.0
+708918,1.0,Configuration,,0.0
+711601,8.0,Configuration,,0.0
+711888,1.0,New features,,0.0
+718057,5.0,Dependency,,0.0
+720061,4.0,Code enhancement,,0.0
+725032,8.0,Refactoring,"Dependency wasn't needed until there was build failure related TripleO. Accordignly, a reviewer suggest: 'So Tripleo probably needs a patch to modify their overrides.'",0.0
+725236,3.0,Dependency,,0.0
+726681,1.0,Docs,,0.0
+728582,1.0,Code enhancement,,0.0
+733493,1.0,New features,,0.0
+733768,4.0,Refactoring,,0.0
+734315,2.0,Refactoring,,0.0
+740376,1.0,Dependency,,0.0
+741486,1.0,Configuration,,0.0
+742856,1.0,Tests,,0.0
+742994,1.0,Dependency,'Dependency has merged into cinder as mv 3.61.',0.0
+743913,3.0,Configuration,,0.0
+746770,1.0,New features,,0.0
+747165,1.0,Tests,,0.0
+747460,3.0,Configuration,,0.0
+747493,1.0,Configuration,,0.0
+747593,1.0,Refactoring,,0.0
+747801,2.0,New features,,0.0
+748439,1.0,New features,,0.0
+749029,1.0,Dependency,,0.0
+749694,1.0,Configuration,,0.0
+750189,1.0,Configuration,,0.0
+754844,3.0,Configuration,developer was working on both changes at the same time,0.0
+757141,13.0,New features,,0.0
+760431,1.0,Configuration,,0.0
+764539,2.0,Dependency,,0.0
+765765,3.0,Configuration,,0.0
+767155,1.0,Renaming,,0.0
+767287,6.0,Dependency,,0.0
+771071,3.0,Tests,The dependency was relevant to the changes made in the 3rd patch,0.0
+773921,1.0,Dependency,,0.0
+775330,1.0,Tests,,0.0
+777021,2.0,Configuration,,0.0
+779377,1.0,New features,,0.0
+781953,1.0,Configuration,,0.0
+783860,1.0,Configuration,,0.0
+785093,1.0,Configuration,,0.0
+789838,5.0,New features,,0.0
+791337,6.0,Refactoring,The dependency is created at the time of 6th pathset publication.,0.0
+792025,1.0,Refactoring,,0.0
+792522,2.0,Refactoring,Patchset with deps was created 16min after the 1st one.,0.0
+793459,1.0,Refactoring,,0.0
+793690,1.0,Configuration,,0.0
+794593,15.0,Code enhancement,"The dependent change was released right before the 15th patchset with a dependency. Hence, the developer mentioned the following: 'Adding depends on [798430] should fix it.'",0.0
+795250,1.0,Configuration,,0.0
+795951,1.0,Configuration,,0.0
+797747,1.0,Refactoring,,0.0
+799482,7.0,Configuration,,0.0
+800826,3.0,Tests,,0.0
+803082,8.0,New features,,0.0
+803113,3.0,Dependency,,0.0
+804291,4.0,Configuration,,0.0
+804963,4.0,Configuration,Inconsistent dependency assignment. Different dependecies were used across patches.,0.0
+806890,1.0,New features,,0.0
+812655,1.0,Refactoring,,0.0
+813208,1.0,Configuration,,0.0
+813680,1.0,Code enhancement,,0.0
+814535,4.0,Dependency,Inconsistent dependency assignment.,0.0
+815201,1.0,Refactoring,,0.0
+816756,6.0,Code enhancement,The developer started working on the depedent change while preparing the 6th patch of the changes with deps.,0.0
+816988,1.0,Dependency,,0.0
+817799,1.0,Configuration,,0.0
+819850,1.0,Configuration,,0.0
+819856,1.0,Dependency,,0.0
+823638,1.0,Configuration,,0.0
+826151,1.0,Configuration,,0.0
+831499,1.0,Configuration,,0.0
+832823,3.0,New features,The developer started working on the depedent before pushing the patchset with a dependency.,0.0
+833424,1.0,New features,,0.0
+833817,1.0,Configuration,,0.0
+836823,3.0,Tests,,0.0
+837094,1.0,Tests,,0.0
+837999,1.0,New features,,0.0
+838365,2.0,Configuration,added 5min after 1st patch,0.0
+839671,7.0,Code enhancement,,0.0
+841563,1.0,Refactoring,,0.0
+842102,2.0,Configuration,deps was added 1h after 1st patchset,0.0
+843029,1.0,Code enhancement,,0.0
+843046,3.0,Code enhancement,The developer was working simultaneously on both changes.,0.0
+846051,1.0,Configuration,,0.0
+848186,3.0,Code enhancement,The developer was working simultaneously on both changes.,0.0
+850215,19.0,New features,The developer was working simultaneously on both changes.,0.0
+851345,1.0,Configuration,,0.0
+851433,4.0,Configuration,,0.0
+851955,1.0,Configuration,,0.0
+871255,9.0,New features,The developer was working simultaneously on both changes.,0.0
+879838,1.0,Configuration,,0.0
+880229,1.0,Configuration,,0.0
+882365,1.0,Configuration,,0.0
+886479,1.0,Configuration,,0.0
+889134,1.0,Tests,,0.0
+889258,2.0,Refactoring,deps was added 1min after 1st patchset,0.0
+898495,1.0,Configuration,,0.0
+899224,2.0,New features,deps was added 1min after 1st patchset,0.0
+904170,1.0,Docs,,0.0
+914032,1.0,Refactoring,,0.0
+914536,2.0,New features,The developer was working simultaneously on both changes.,0.0
+915769,1.0,Duplicate,,0.0
+918920,1.0,Tests,,0.0
+919265,1.0,Tests,,0.0
+919339,1.0,Tests,,0.0
+919494,1.0,Tests,,0.0
+920233,1.0,Dependency,,0.0
