@@ -5,330 +5,399 @@ import json
 import os
 import os.path as osp
 import shutil
-import llmcp.utils.helpers as hpr
+import utils.helpers as hpr
 import re
 
-DIR = hpr.DIR
+from logging_config import get_logger
 
+class OpenStackDataTransformer:
+    """
+    A class for transforming OpenStack data from JSON files to CSV format.
+    """
+    
+    def __init__(self, base_dir=None):
+        """
+        Initialize the transformer with a base directory.
+        
+        Args:
+            base_dir: The base directory for data processing. If None, uses the default from helpers.
+        """
+        self.DIR = base_dir if base_dir is not None else hpr.DIR
+        # Folder containing the JSON file (raw data from Gerrit)
+        self.DATA_DIR = osp.join('.', 'Data')
+        self.CHANGES_DIR = 'Changes2'
 
-def process_json_file(file_name):
-    """Transform a json file into a readable python dict format"""
-    with open("%sData/%s" % (DIR, file_name), "r") as string:
-        dict_data = json.load(string)
-    string.close()
-    return dict_data
+        # BILEL (A supprimer apres)
+        # Init MongoManager class
+        # mogo_manager = MongoManager()
 
+        self.logger = get_logger()
+        self.logger.info(f"{self.DATA_DIR=}")
+        
+    def process_json_file(self, file_name):
+        """
+        Transform a json file into a readable python dict format.
+        
+        Args:
+            file_name: The name of the JSON file to process.
+            
+        Returns:
+            dict: The loaded JSON data as a Python dictionary.
+        """
+        with open(f"{self.DIR}Data/{file_name}", "r") as string:
+            dict_data = json.load(string)
+        string.close()
+        return dict_data
+    
+    def retrieve_reviewers(self, df, index):
+        """
+        Filter the reviewers of each change.
+        
+        Args:
+            df: DataFrame containing change data.
+            index: Index number for the output file.
+        """
+        old_columns = ["change_id", "reviewers"]
+        main_columns = ["change_id", "account_id", "name", "email", "username"]
 
-def retrieve_reviewers(df, index):
-    """Filter the reviewers of each change"""
-    old_columns = ["change_id", "reviewers"]
-    main_columns = ["change_id", "account_id", "name", "email", "username"]
+        reviewers_df = df[old_columns].copy()
 
-    reviewers_df = df[old_columns].copy()
-
-    reviewers_df["flatenned_object"] = reviewers_df.apply(
-        lambda row: {"change_id": row["change_id"], "reviewers": row["reviewers"]}, axis=1
-    )
-
-    reviewers_df = reviewers_df.drop(columns=old_columns)
-
-    reviewers_df = pd.json_normalize(
-        data=reviewers_df["flatenned_object"], record_path="reviewers", meta=["change_id"], sep="_", errors="ignore"
-    )
-
-    reviewers_df.columns = reviewers_df.columns.str.replace("_account_id", "account_id")
-
-    reviewers_df = reviewers_df[main_columns]
-
-    filepath = "%sReviewers/reviewers_data_%d.csv" % (DIR, index)
-    reviewers_df.to_csv(filepath, index=False, encoding="utf-8")
-
-
-def retrieve_messages(df, index):
-    """Filter the discussion messages of each change"""
-    old_columns = ["change_id", "current_revision", "messages"]
-
-    new_columns = [
-        "change_id",
-        "id",
-        "date",
-        "message",
-        "author_account_id",
-        "author_name",
-        "author_username",
-        "real_author_account_id",
-        "real_author_name",
-        "real_author_username",
-        "author_email",
-        "real_author_email",
-    ]
-
-    messages_df = df[old_columns].copy()
-
-    messages_df["flatenned_object"] = messages_df.apply(
-        lambda row: {"change_id": row["change_id"], "messages": row["messages"]}, axis=1
-    )
-
-    for c in old_columns:
-        del messages_df[c]
-
-    messages_df = pd.json_normalize(
-        data=messages_df["flatenned_object"], record_path="messages", meta=["change_id"], sep="_", errors="ignore"
-    )
-
-    messages_df = messages_df.rename(
-        columns={"author__account_id": "author_account_id", "real_author__account_id": "real_author_account_id"}
-    )
-
-    messages_df = messages_df[new_columns]
-
-    filepath = "%sMessages/messages_data_%d.csv" % (DIR, index)
-    messages_df.to_csv(filepath, index=False, encoding="utf-8")
-
-
-def filter_files_attr(revisions):
-    """Filter files of the current change"""
-    # if row["current_revision"] not in row["revisions"].keys():
-    #     return {}
-
-    first_revision = revisions[0]
-    return first_revision["files"]
-
-
-def retrieve_files(df, index):
-    """Filter the files of each change"""
-    revisions_df = df[["change_id", "current_revision", "project", "subject", "revisions"]].copy()
-
-    revisions_df["files"] = revisions_df.apply(
-        lambda row: {
-            "change_id": row["change_id"],
-            "current_revision": row["current_revision"],
-            "project": row["project"],
-            "subject": row["subject"],
-            "files": filter_files_attr(row),
-        },
-        axis=1,
-    )
-
-    files_df = revisions_df[["files"]]
-
-    files_data = []
-
-    for row in np.array(files_df):
-        row = row[0]
-        file_keys = row["files"].keys()
-
-        if len(file_keys) == 0:
-            continue
-
-        for fk in file_keys:
-            new_row = {"name": fk, **row, **row["files"][fk]}
-            files_data.append(new_row)
-
-    files_df = pd.DataFrame(files_data)
-
-    del files_df["files"]
-    del files_df["status"]
-
-    files_df = files_df.drop(columns=["files", "status", "old_path", "binary"], errors="ignore")
-
-    file_path = "%sFilesOS/files_data_%d.csv" % (DIR, index)
-    files_df.to_csv(file_path, index=False, encoding="utf-8")
-
-
-def calc_nbr_files(row):
-    """Count number of files for each change"""
-    return len(filter_files_attr(row))
-
-
-def retrieve_commit_message(row):
-    """Retrieve commit message of each review"""
-    if row["current_revision"] not in row["revisions"].keys():
-        keys = list(row["revisions"].keys())
-        return row["revisions"][keys[0]]["commit"]["message"]
-
-    return row["revisions"][row["current_revision"]]["commit"]["message"]
-
-
-def retrieve_git_command(row):
-    """Retrieve git command for changed lines of code"""
-    revisions = list(row.values())
-
-    fetch = revisions[0]["fetch"]["anonymous http"]
-
-    # git_command = "git fetch {} {} && git format-patch -1 --stdout FETCH_HEAD".format(fetch["url"], fetch["ref"])
-    git_command = f'{fetch["commands"]["Pull"]} && git config pull.ff only'
-    return git_command
-
-
-def retrieve_revisions(revisions):
-    # revisions = row["revisions"]
-    results = []
-    # print(revisions.keys())
-    for rev in list(revisions.values()):
-        # url = None
-        # for item in rev['commit']['web_links']:
-        #     if item['name'] == 'gitea':
-        #         url = item['url']
-        #         break
-
-        results.append(
-            {
-                "number": rev["_number"],
-                "created": rev["created"],
-                "files": list(rev["files"].keys()) if "files" in rev.keys() else [],
-                # "web_link": url,
-                "message": rev["commit"]["message"],
-            }
+        reviewers_df["flatenned_object"] = reviewers_df.apply(
+            lambda row: {"change_id": row["change_id"], "reviewers": row["reviewers"]}, axis=1
         )
-    results.sort(key=lambda x: x["created"], reverse=False)
 
-    return results if len(results) > 0 else []
+        reviewers_df = reviewers_df.drop(columns=old_columns)
 
+        reviewers_df = pd.json_normalize(
+            data=reviewers_df["flatenned_object"], record_path="reviewers", meta=["change_id"], sep="_", errors="ignore"
+        )
 
-def extract_messages(messages):
-    res = [
-        {"rev_nbr": msg["_revision_number"], "author": msg["date"], "date": msg["date"]}
-        for msg in messages
-        if any(item in msg["message"] for item in ["Build failed.", "Build succeeded."])
-    ]
+        reviewers_df.columns = reviewers_df.columns.str.replace("_account_id", "account_id")
 
-    return res if len(res) > 0 else None
+        reviewers_df = reviewers_df[main_columns]
 
+        filepath = f"{self.DIR}Reviewers/reviewers_data_{index}.csv"
+        reviewers_df.to_csv(filepath, index=False, encoding="utf-8")
+    
+    def retrieve_messages(self, df, index):
+        """
+        Filter the discussion messages of each change.
+        
+        Args:
+            df: DataFrame containing change data.
+            index: Index number for the output file.
+        """
+        old_columns = ["change_id", "current_revision", "messages"]
 
-# def retrieve_commit_id(revisions):
-#     """Retrieve commit id related to a given change
-#     """
-#     first_revision = revisions[0]
-#     return first_revision["commit_id"]
-
-
-def extract_commit_id(revision):
-    """Retrieve commit id related to a given change"""
-    url = revision[0]["web_link"]
-
-    pattern = r"/commit/([a-f0-9]+)$"  # Regular expression pattern to match the commit ID
-
-    match = re.search(pattern, url)
-    if match:
-        commit_id = match.group(1)
-        # print("Commit ID:", commit_id)
-        return commit_id
-
-    # print("No commit ID found in the URL.")
-    return None
-
-
-def retrieve_changes(file):
-    """Filter the changes"""
-    print(f"Processing {file} file started...")
-
-    changes_columns = [
-        "id",
-        "project",
-        "branch",
-        "change_id",
-        "owner",
-        "subject",
-        "status",
-        "created",
-        "updated",  # "submitted",
-        "added_lines",
-        "deleted_lines",
-        # "reviewers", "messages",  "total_comment_count",
-        "revisions",
-        "_number",
-        "current_revision",
-    ]
-
-    df = pd.read_json("%s/Data2/%s" % (os.getcwd(), file))
-
-    df = df[changes_columns]
-
-    # df["discussion_messages_count"] = df["messages"].copy().map(lambda x: len(x))
-    # df["reviewers"] = df["reviewers"].map(lambda x: x["REVIEWER"]
-    #   if "REVIEWER" in x.keys() else [])
-    # df["reviewers_count"] = df["reviewers"].map(lambda x: len(x))
-    # df["revisions_count"] = df["revisions"].map(lambda x: len(x))
-
-    df["owner_account_id"] = df["owner"].map(lambda x: x["_account_id"] if "_account_id" in x.keys() else None)
-    df["owner_name"] = df["owner"].map(lambda x: x["name"] if "name" in x.keys() else None)
-    df["owner_username"] = df["owner"].map(lambda x: x["username"] if "username" in x.keys() else None)
-
-    df["is_owner_bot"] = df["owner"].map(lambda x: 1 if "tags" in x.keys() else 0)
-
-    df["commit_message"] = df.apply(retrieve_commit_message, axis=1)
-
-    # df["git_command"] = df["revisions"].map(retrieve_git_command)
-
-    df["revisions"] = df["revisions"].map(retrieve_revisions)
-    # df["messages"] = df["revisions"].map(extract_messages)
-    # df["commit_id"] = df["revisions"].map(retrieve_commit_id)
-    # df["changed_files"] = df["revisions"].map(filter_files_attr)
-    # df["files_count"] = df["revisions"].map(calc_nbr_files)
-
-    # df['commit_id'] = df["revisions"].map(extract_commit_id)
-
-    # if "topic" in origin_df.columns:
-    #     df = pd.concat((df, origin_df[["topic"]]), axis=1)
-
-    del df["owner"]
-
-    changes_df = df.copy()
-    changes_df.columns = changes_df.columns.str.replace("_number", "number")
-
-    # del changes_df["reviewers"]
-    # del changes_df["messages"]
-    # del changes_df["revisions"]
-
-    file_path = osp.join(os.getcwd(), "changes", f"data_{file[5:-5]}.csv")
-    changes_df.to_csv(file_path, index=False, encoding="utf-8")
-
-    print(f"{file} file completed successfully...")
-
-    return file
-
-
-if __name__ == "__main__":
-    print("Script openstack-data-transform.py started...")
-
-    start_date, start_header = hpr.generate_date("This script started at")
-
-    changes_dir = "%schanges" % DIR
-    # reviewers_dir = "%sReviewers" % DIR
-    # messages_dir = "%sMessages" % DIR
-    # files_dir = "%sFilesOS" % DIR
-
-    for dir in list(
-        [
-            changes_dir,  # reviewers_dir, messages_dir, files_dir
+        new_columns = [
+            "change_id",
+            "id",
+            "date",
+            "message",
+            "author_account_id",
+            "author_name",
+            "author_username",
+            "real_author_account_id",
+            "real_author_name",
+            "real_author_username",
+            "author_email",
+            "real_author_email",
         ]
-    ):
-        if os.path.exists(dir):
-            shutil.rmtree(path=dir)
-        os.makedirs(dir)
 
-    # index = 0
-    # file_path = "openstack_data_722.json"
-    json_files = hpr.list_file(osp.join(os.getcwd(), "Data2"))
-    processed_files = []
-    # processed_files_path = osp.join(os.getcwd(), 'Changes')
+        messages_df = df[old_columns].copy()
 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = [executor.submit(retrieve_changes, f) for f in json_files]
+        messages_df["flatenned_object"] = messages_df.apply(
+            lambda row: {"change_id": row["change_id"], "messages": row["messages"]}, axis=1
+        )
 
-        for f in concurrent.futures.as_completed(results):
-            if f:
-                print(f"File {f.result()} processed successfully!")
-                processed_files.append(f.result())
-                # pd.DataFrame({'name': processed_files}).to_csv(processed_files_path, index=None)
+        for c in old_columns:
+            del messages_df[c]
 
-    end_date, end_header = hpr.generate_date("This script ended at")
+        messages_df = pd.json_normalize(
+            data=messages_df["flatenned_object"], record_path="messages", meta=["change_id"], sep="_", errors="ignore"
+        )
 
-    print(start_header)
+        messages_df = messages_df.rename(
+            columns={"author__account_id": "author_account_id", "real_author__account_id": "real_author_account_id"}
+        )
 
-    print(end_header)
+        messages_df = messages_df[new_columns]
 
-    hpr.diff_dates(start_date, end_date)
+        filepath = f"{self.DIR}Messages/messages_data_{index}.csv"
+        messages_df.to_csv(filepath, index=False, encoding="utf-8")
+    
+    def filter_files_attr(self, revisions):
+        """
+        Filter files of the current change.
+        
+        Args:
+            revisions: List of revisions.
+            
+        Returns:
+            dict: Dictionary of files.
+        """
+        first_revision = revisions[0]
+        return first_revision["files"]
+    
+    def retrieve_files(self, df, index):
+        """
+        Filter the files of each change.
+        
+        Args:
+            df: DataFrame containing change data.
+            index: Index number for the output file.
+        """
+        revisions_df = df[["change_id", "current_revision", "project", "subject", "revisions"]].copy()
 
-    print("Script openstack-data-transform.py ended\n")
+        revisions_df["files"] = revisions_df.apply(
+            lambda row: {
+                "change_id": row["change_id"],
+                "current_revision": row["current_revision"],
+                "project": row["project"],
+                "subject": row["subject"],
+                "files": self.filter_files_attr(row["revisions"]),
+            },
+            axis=1,
+        )
+
+        files_df = revisions_df[["files"]]
+
+        files_data = []
+
+        for row in np.array(files_df):
+            row = row[0]
+            file_keys = row["files"].keys()
+
+            if len(file_keys) == 0:
+                continue
+
+            for fk in file_keys:
+                new_row = {"name": fk, **row, **row["files"][fk]}
+                files_data.append(new_row)
+
+        files_df = pd.DataFrame(files_data)
+
+        # Safely remove columns that might not exist
+        files_df = files_df.drop(columns=["files", "status", "old_path", "binary"], errors="ignore")
+
+        file_path = f"{self.DIR}FilesOS/files_data_{index}.csv"
+        files_df.to_csv(file_path, index=False, encoding="utf-8")
+
+    def calc_nbr_files(self, row):
+        """
+        Count number of files for each change.
+        
+        Args:
+            row: Row from DataFrame.
+            
+        Returns:
+            int: Number of files.
+        """
+        return len(self.filter_files_attr(row["revisions"]))
+    
+    def retrieve_commit_message(self, row):
+        """
+        Retrieve commit message of each review.
+        
+        Args:
+            row: Row from DataFrame.
+            
+        Returns:
+            str: Commit message.
+        """
+        if row["current_revision"] not in row["revisions"].keys():
+            keys = list(row["revisions"].keys())
+            return row["revisions"][keys[0]]["commit"]["message"]
+
+        return row["revisions"][row["current_revision"]]["commit"]["message"]
+    
+    def retrieve_git_command(self, row):
+        """
+        Retrieve git command for changed lines of code.
+        
+        Args:
+            row: Row from DataFrame.
+            
+        Returns:
+            str: Git command.
+        """
+        revisions = list(row.values())
+        fetch = revisions[0]["fetch"]["anonymous http"]
+        git_command = f'{fetch["commands"]["Pull"]} && git config pull.ff only'
+        return git_command
+    
+    def retrieve_revisions(self, revisions):
+        """
+        Process revisions data.
+        
+        Args:
+            revisions: Revisions data.
+            
+        Returns:
+            list: List of processed revisions.
+        """
+        results = []
+        for rev in list(revisions.values()):
+            results.append(
+                {
+                    "number": rev["_number"],
+                    "created": rev["created"],
+                    "files": list(rev["files"].keys()) if "files" in rev.keys() else [],
+                    "message": rev["commit"]["message"],
+                }
+            )
+        results.sort(key=lambda x: x["created"], reverse=False)
+
+        return results if len(results) > 0 else []
+    
+    def extract_messages(self, messages):
+        """
+        Extract specific messages from change data.
+        
+        Args:
+            messages: List of messages.
+            
+        Returns:
+            list or None: Filtered messages or None if empty.
+        """
+        res = [
+            {"rev_nbr": msg["_revision_number"], "author": msg["date"], "date": msg["date"]}
+            for msg in messages
+            if any(item in msg["message"] for item in ["Build failed.", "Build succeeded."])
+        ]
+
+        return res if len(res) > 0 else None
+    
+    def extract_commit_id(self, revision):
+        """
+        Retrieve commit id related to a given change.
+        
+        Args:
+            revision: Revision data.
+            
+        Returns:
+            str or None: Commit ID or None if not found.
+        """
+        url = revision[0]["web_link"]
+        pattern = r"/commit/([a-f0-9]+)$"  # Regular expression pattern to match the commit ID
+        match = re.search(pattern, url)
+        
+        if match:
+            commit_id = match.group(1)
+            return commit_id
+        
+        return None
+    
+    def retrieve_changes(self, file):
+        """
+        Filter the changes from a JSON file and save to CSV.
+        
+        Args:
+            file: The name of the JSON file to process.
+            
+        Returns:
+            str: The processed file name.
+        """
+        print(f"Processing {file} file started...")
+
+        changes_columns = [
+            "id",
+            "project",
+            "branch",
+            "change_id",
+            "owner",
+            "subject",
+            "status",
+            "created",
+            "updated",  # "submitted",
+            "added_lines",
+            "deleted_lines",
+            "reviewers", "messages", "total_comment_count",
+            "revisions",
+            "_number",
+            "current_revision",
+        ]
+
+        # Read JSON data
+        df = pd.read_json(f"{self.DATA_DIR}/{file}")
+        df = df[changes_columns]
+
+        # Process reviewers
+        df["reviewers"] = df["reviewers"].map(lambda x: x["REVIEWER"] if "REVIEWER" in x.keys() else [])
+        
+        # Process owner information
+        df["owner_account_id"] = df["owner"].map(lambda x: x["_account_id"] if "_account_id" in x.keys() else None)
+        df["owner_name"] = df["owner"].map(lambda x: x["name"] if "name" in x.keys() else None)
+        df["owner_username"] = df["owner"].map(lambda x: x["username"] if "username" in x.keys() else None)
+        df["is_owner_bot"] = df["owner"].map(lambda x: 1 if "tags" in x.keys() else 0)
+        
+        # Process commit and revision information
+        df["commit_message"] = df.apply(self.retrieve_commit_message, axis=1)
+        df["revisions"] = df["revisions"].map(self.retrieve_revisions)
+        df["messages"] = df["messages"].map(self.extract_messages)
+        df["changed_files"] = df["revisions"].map(self.filter_files_attr)
+        
+        # Remove owner column as it's been processed
+        del df["owner"]
+
+        df_changes = df.copy()
+        df_changes.columns = df_changes.columns.str.replace("_number", "number")
+
+        # Save to CSV
+        # file_path = osp.join('.', self.CHANGES_DIR, f"data_{file.split('_')[-1].split('.')[0]}.csv")
+        # df_changes.to_csv(file_path, index=False, encoding="utf-8")
+
+        # BILEL (A supprimer apres)
+        # Invoke a method to save dataframe to Mongo DB
+        # mongo_manager.save_changes_to_dv(df_changes)
+
+        print(f"{file} file completed successfully...")
+
+        return file
+    
+    def transform_all_data(self):
+        """
+        Main method to transform all JSON files to CSV.
+        """
+        print("OpenStack Data Transformation started...")
+
+        start_date, start_header = hpr.generate_date("This transformation started at")
+
+        # Create or clean directories
+        changes_dir = f"{self.DIR}/{self.CHANGES_DIR}"
+        # reviewers_dir = f"{self.DIR}Reviewers"
+        # messages_dir = f"{self.DIR}Messages"
+        # files_dir = f"{self.DIR}FilesOS"
+
+        for dir_path in [changes_dir]:
+            if os.path.exists(dir_path):
+                shutil.rmtree(path=dir_path)
+            os.makedirs(dir_path)
+
+        # Get list of JSON files
+        json_files = hpr.list_file(self.DATA_DIR)
+        processed_files = []
+
+        # Process files in parallel
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            results = [executor.submit(self.retrieve_changes, f) for f in json_files]
+
+            for f in concurrent.futures.as_completed(results):
+                if f:
+                    print(f"File {f.result()} processed successfully!")
+                    processed_files.append(f.result())
+
+        end_date, end_header = hpr.generate_date("This transformation ended at")
+
+        print(start_header)
+        print(end_header)
+        hpr.diff_dates(start_date, end_date)
+
+        print("OpenStack Data Transformation completed\n")
+        
+        return processed_files
+
+
+# if __name__ == "__main__":
+#     transformer = OpenStackDataTransformer()
+#     transformer.transform_all_data()

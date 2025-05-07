@@ -8,3 +8,4 @@ temp/
 /doc2vec
 /Files/Data/*
 combined_output.csv
+/**/*.log
