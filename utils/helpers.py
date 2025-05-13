@@ -11,15 +11,28 @@ GerritAccount = ""
 XSRF_TOKEN = ""
 
 def convert(seconds):
-    # Calculate days, hours, minutes, and remaining seconds
-    days = seconds // (24 * 3600)
-    seconds %= (24 * 3600)
+    """
+    Convert seconds to a human-readable format (hours, minutes, seconds).
+    
+    Args:
+        seconds: Number of seconds to convert.
+        
+    Returns:
+        str: Formatted time string.
+    """
     hours = seconds // 3600
-    seconds %= 3600
-    minutes = seconds // 60
-    seconds %= 60
-
-    return f'{days:.2f} days, {hours:.2f} hours, {minutes:.2f} minutes and {seconds:.2f} seconds'
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    
+    result = ""
+    if hours > 0:
+        result += f"{hours} hour{'s' if hours > 1 else ''} "
+    if minutes > 0:
+        result += f"{minutes} minute{'s' if minutes > 1 else ''} "
+    if seconds > 0 or (hours == 0 and minutes == 0):
+        result += f"{seconds} second{'s' if seconds > 1 else ''}"
+    
+    return result.strip()
 
 
 def generate_date(header):
@@ -30,14 +43,34 @@ def generate_date(header):
 
 
 def diff_dates(start_date, end_date):
-    """Calculate the difference between two dates
     """
-    start_date = datetime.strptime(start_date, "%Y/%m/%d %H:%M:%S:%f")
-    end_date = datetime.strptime(end_date, "%Y/%m/%d %H:%M:%S:%f")
-
-    elapsed_seconds = convert((end_date - start_date).seconds)
-
-    print("This script took {}".format(elapsed_seconds))
+    Calculate the difference between two dates.
+    
+    Args:
+        start_date: Start date string in format "%Y/%m/%d %H:%M:%S:%f" or "%Y/%m/%d %H:%M:%S"
+        end_date: End date string in format "%Y/%m/%d %H:%M:%S:%f" or "%Y/%m/%d %H:%M:%S"
+        
+    Returns:
+        str: Formatted time difference.
+    """
+    # Try parsing with milliseconds first, then without
+    for fmt in ("%Y/%m/%d %H:%M:%S:%f", "%Y/%m/%d %H:%M:%S"):
+        try:
+            start_date = datetime.strptime(start_date, fmt)
+            end_date = datetime.strptime(end_date, fmt)
+            break
+        except ValueError:
+            continue
+    else:
+        raise ValueError("Date format not recognized")
+    
+    time_diff = end_date - start_date
+    elapsed_seconds = time_diff.total_seconds()
+    
+    formatted_time = convert(int(elapsed_seconds))
+    print(f"This script took {formatted_time}")
+    
+    return formatted_time
 
 def list_file(directory):
     """List files of a directory
@@ -52,13 +85,13 @@ def flatten_list(array):
     result = [item for sublist in array for item in sublist]
     return result
 
-def combine_openstack_data(revert_path=False, filter_merged=True, filter_real_dev=True):
+def combine_openstack_data(changes_path: str="/Changes/"):
     '''Combine generated csv files into a single DataFrame object
     '''
     print('Reading OpenStack changes...')
     data_path = f"{os.getcwd()}"
 
-    data_path += "/Changes/"
+    data_path += changes_path
 
     df = pd.DataFrame([])
     changes_file_names = list_file(data_path)
@@ -154,8 +187,9 @@ def combine_changed_file_names(x):
 
     return tokens
 
-def combine_file_metrics():
-    path = osp.join("..", "Files", "file-metrics")
+def combine_file_metrics(path=None):
+    if not path:
+        path = osp.join("..", "Files", "file-metrics")
 
     files = list_file(path)
     df = pd.DataFrame()

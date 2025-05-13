@@ -166,7 +166,7 @@ class OpenStackDependencyGenerator:
         # Add additional metadata through merges
         df_depends_needed = pd.merge(
             left=df_depends_needed,
-            right=self.df[["number", "status", "owner_account_id", "created"]],
+            right=self.df[["number", "status", "owner_account_id", "created", "change_id", "is_owner_bot"]],
             left_on=['Source'],
             right_on=['number'],
             how='left',
@@ -175,7 +175,7 @@ class OpenStackDependencyGenerator:
         
         df_depends_needed = pd.merge(
             left=df_depends_needed,
-            right=self.df[["number", "status", "owner_account_id", "created"]],
+            right=self.df[["number", "status", "owner_account_id", "created", "change_id", "is_owner_bot"]],
             left_on=['Target'],
             right_on=['number'],
             how='left',
@@ -189,15 +189,20 @@ class OpenStackDependencyGenerator:
             "author_source": "Source_author",
             "status_author": "Target_status",
             "created_source": "Source_created",
-            "created_target": "Target_created"}, inplace=True)
+            "created_target": "Target_created",
+            "change_id_target": "Target_change_id",
+            "change_id_source": "Source_change_id",
+            "is_owner_bot_target": "Target_is_owner_bot",
+            "is_owner_bot_source": "Source_is_owner_bot",
+        }, inplace=True)
 
         df_depends_needed = df_depends_needed.reset_index(drop=True)
 
         # Save results to CSV files
         print("Saving results to CSV files...")
-        df_depends_on.to_csv(f"{self.DIR}/Files/source_target_depends.csv", index=False)
-        df_needed_by.to_csv(f"{self.DIR}/Files/source_target_needed.csv", index=False)
-        df_depends_needed.to_csv(f"{self.DIR}/Files/source_target_evolution.csv", index=False)
+        df_depends_on.to_csv(f"{self.DIR}/Files/source_target_depends2.csv", index=False)
+        df_needed_by.to_csv(f"{self.DIR}/Files/source_target_needed2.csv", index=False)
+        df_depends_needed.to_csv(f"{self.DIR}/Files/source_target_evolution2.csv", index=False)
 
         return df_depends_on, df_needed_by, df_depends_needed
     
@@ -213,11 +218,11 @@ class OpenStackDependencyGenerator:
         start_date, start_header = hpr.generate_date("This generation started at")
         
         # Prepare directories
-        self.prepare_directories()
+        # self.prepare_directories()
         
         # Load OpenStack data
         print("Loading OpenStack data...")
-        self.df = hpr.combine_openstack_data()
+        self.df = hpr.combine_openstack_data(changes_path="/Changes3/")
         
         # Generate evolution data
         results = self.generate_os_evolution_data()

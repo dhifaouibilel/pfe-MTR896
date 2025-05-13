@@ -101,13 +101,13 @@ def process_folds(fold, train_idx, test_idx):
 
     df_test = build_pairs(test_numbers, fold)
     print(f"Test set for Fold {fold} has been processed")
-    # test_pos = df_test[df_test['related']==1]
-    # test_neg = df_test[df_test['related']==0]
+    test_pos = df_test[df_test['related']==1]
+    test_neg = df_test[df_test['related']==0]
 
-    # test_pos = test_pos.sample(n=len(test_pos)*.1, random_state=42)
-    # test_neg = test_neg.sample(n=len(test_neg)*.1, random_state=42)
+    test_pos = test_pos.sample(n=int(len(test_pos)*.05), random_state=42)
+    test_neg = test_neg.sample(n=int(len(test_neg)*.05), random_state=42)
 
-    # df_test = pd.concat((test_pos, test_neg))
+    df_test = pd.concat((test_pos, test_neg))
 
     df_train.to_csv(osp.join(".", "Files", "Data", "Train", f"{fold}.csv"))
     df_test.to_csv(osp.join(".", "Files", "Data", "Test", f"{fold}.csv"))
@@ -116,14 +116,15 @@ def process_folds(fold, train_idx, test_idx):
 
 
 def init_global_vars():
-    df_dependencies_loc = pd.read_csv(osp.join(".", "Files", "all_dependencies.csv"))
+    df_dependencies_loc = pd.read_csv(osp.join(".", "Files", "source_target_evolution_clean.csv"))
+    df_dependencies_loc.dropna(subset=["Source_status", "Target_status"], inplace=True)
     df_dependencies_loc = df_dependencies_loc.loc[(df_dependencies_loc['Source_status']!='NEW')&(df_dependencies_loc['Target_status']!='NEW')]
     df_dependencies_loc['related'] = 1
 
-    df_changes_loc = hpr.combine_openstack_data()
+    df_changes_loc = hpr.combine_openstack_data(changes_path="/Changes3/")
     min_date = datetime(2014, 1, 1)
     df_changes_loc = df_changes_loc[(df_changes_loc['status']!='NEW')&(df_changes_loc['created']>=min_date)]
-    # df_changes_loc = df_changes_loc.drop_duplicates(subset=['change_id'], keep='last')
+    df_changes_loc = df_changes_loc.drop_duplicates(subset=['change_id'], keep='last')
 
 
     df_deps_red = df_dependencies_loc[['when_identified']]

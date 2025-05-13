@@ -25,7 +25,7 @@ class OpenStackDataTransformer:
         self.DIR = base_dir if base_dir is not None else hpr.DIR
         # Folder containing the JSON file (raw data from Gerrit)
         self.DATA_DIR = osp.join('.', 'Data')
-        self.CHANGES_DIR = 'Changes2'
+        self.CHANGES_DIR = 'Changes3'
 
         # BILEL (A supprimer apres)
         # Init MongoManager class
@@ -298,7 +298,7 @@ class OpenStackDataTransformer:
         Returns:
             str: The processed file name.
         """
-        print(f"Processing {file} file started...")
+        self.logger.info(f"Processing {file} file started...")
 
         changes_columns = [
             "id",
@@ -310,8 +310,9 @@ class OpenStackDataTransformer:
             "status",
             "created",
             "updated",  # "submitted",
-            "added_lines",
-            "deleted_lines",
+            # "added_lines",
+            # "deleted_lines",
+            "insertions", "deletions",
             "reviewers", "messages", "total_comment_count",
             "revisions",
             "_number",
@@ -344,14 +345,14 @@ class OpenStackDataTransformer:
         df_changes.columns = df_changes.columns.str.replace("_number", "number")
 
         # Save to CSV
-        # file_path = osp.join('.', self.CHANGES_DIR, f"data_{file.split('_')[-1].split('.')[0]}.csv")
-        # df_changes.to_csv(file_path, index=False, encoding="utf-8")
+        file_path = osp.join('.', self.CHANGES_DIR, f"data_{file.split('_')[-1].split('.')[0]}.csv")
+        df_changes.to_csv(file_path, index=False, encoding="utf-8")
 
         # BILEL (A supprimer apres)
         # Invoke a method to save dataframe to Mongo DB
         # mongo_manager.save_changes_to_dv(df_changes)
 
-        print(f"{file} file completed successfully...")
+        self.logger.info(f"{file} file completed successfully...")
 
         return file
     
@@ -359,7 +360,7 @@ class OpenStackDataTransformer:
         """
         Main method to transform all JSON files to CSV.
         """
-        print("OpenStack Data Transformation started...")
+        self.logger.info("OpenStack Data Transformation started...")
 
         start_date, start_header = hpr.generate_date("This transformation started at")
 
@@ -384,16 +385,16 @@ class OpenStackDataTransformer:
 
             for f in concurrent.futures.as_completed(results):
                 if f:
-                    print(f"File {f.result()} processed successfully!")
+                    self.logger.info(f"File {f.result()} processed successfully!")
                     processed_files.append(f.result())
 
         end_date, end_header = hpr.generate_date("This transformation ended at")
 
-        print(start_header)
-        print(end_header)
+        self.logger.info(start_header)
+        self.logger.info(end_header)
         hpr.diff_dates(start_date, end_date)
 
-        print("OpenStack Data Transformation completed\n")
+        self.logger.info("OpenStack Data Transformation completed\n")
         
         return processed_files
 

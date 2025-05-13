@@ -26,12 +26,12 @@ class OpenStackDataCollector:
         """
         Prepare the data directory by removing existing files and creating a fresh directory.
         """
-        if os.path.exists(self.DIR):
-            shutil.rmtree(path=self.DIR)
-        os.makedirs(self.DIR, exist_ok=True)
+        # if os.path.exists(self.DIR):
+        #     shutil.rmtree(path=self.DIR)
+        # os.makedirs(self.DIR, exist_ok=True)
         print(f"Data directory prepared: {self.DIR}")
         
-    def get_openstack_data(self, before_date="2024-06-14"):
+    def get_openstack_data(self, after_date="2024-06-15", before_date="2025-05-12"):
         """
         Perform HTTP requests to Opendev API to get the list of changes 
         related to the OpenStack repository.
@@ -44,15 +44,16 @@ class OpenStackDataCollector:
         """
         is_done = False
         size = 500
+        idx = 1486
         page = 0
         saved_files = []
         
         while not is_done:
             # Change O to 1916314 for more information
-            params = {'O': 1916314, 'n': size, 'S': page * size}
+            params = {'O': 5000081, 'n': size, 'S': page * size}
             
-            url = "https://review.opendev.org/changes/?q=repositories:{} before:{}&o={}&o={}&o={}&o={}".format(
-                "openstack", before_date, "CURRENT_FILES", "MESSAGES",
+            url = "https://review.opendev.org/changes/?q=repositories:{} after:{} before:{}&o={}&o={}&o={}&o={}".format(
+                "openstack", after_date, before_date, "CURRENT_FILES", "MESSAGES",
                 "CURRENT_COMMIT", "CURRENT_REVISION"
             )
             
@@ -66,7 +67,8 @@ class OpenStackDataCollector:
             self.logger.info(f"Retrieved {len(data_per_request)} changes")
             
             if len(data_per_request) != 0:
-                filename = f"{self.DIR}openstack_data_{page}.json"
+                # TODO CHANGE idx to page 
+                filename = f"{self.DIR}openstack_data_{idx}.json"
                 self.logger.info(f"Saving to {filename}")
                 
                 # Convert to JSON and save to file
@@ -76,6 +78,8 @@ class OpenStackDataCollector:
                 
                 saved_files.append(filename)
                 page += 1
+                # TODO REMOVE LINE BELOW
+                idx += 1
             else:
                 is_done = True
                 self.logger.info("Completed data collection - no more results found")
