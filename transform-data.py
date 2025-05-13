@@ -261,9 +261,9 @@ class OpenStackDataTransformer:
             list or None: Filtered messages or None if empty.
         """
         res = [
-            {"rev_nbr": msg["_revision_number"], "author": msg["date"], "date": msg["date"]}
+            {"rev_nbr": msg["_revision_number"], "author": msg.get("author", None).get("_account_id"), "date": msg["date"], "message": msg["message"]}
             for msg in messages
-            if any(item in msg["message"] for item in ["Build failed.", "Build succeeded."])
+            # if any(item in msg["message"] for item in ["Build failed.", "Build succeeded."])
         ]
 
         return res if len(res) > 0 else None
