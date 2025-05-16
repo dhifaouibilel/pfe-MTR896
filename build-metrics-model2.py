@@ -12,7 +12,7 @@ logger = get_logger()
 
 class PairMetricsGenerator:
     def __init__(self):
-        self.METRICS = [m for m in constants.get_metrics()]
+        self.METRICS = [m for m in constants.get_metrics()[:-10]]
         self.df_dependent_changes = None
         self.dependent_changes = None
         self.cross_pro_changes = None
@@ -22,6 +22,12 @@ class PairMetricsGenerator:
         self.changes_description = None
         self.added_lines = None
         self.deleted_lines = None
+
+    def calc_mod_file_dep_cha(self, row):
+        changed_files = row["changed_files"]
+        if type(changed_files) is not list:
+            changed_files = []
+        return round(100*row['num_mod_file_dep_cha']/len(changed_files), 2) if len(changed_files) != 0 else 0
     
     def initialize_global_vars(self):
         """Initialize all global variables needed for analysis"""
@@ -59,14 +65,30 @@ class PairMetricsGenerator:
             how='inner',
             suffixes=('_source', '_target')
         )
+
+        # Combine file metrics
+        path = osp.join(".", "Files", "file-metrics")
+        file_metrics = hpr.combine_file_metrics(path)
+
+        # Combine file metrics with original list of features
+        df_features = pd.merge(
+            left=df_features,
+            right=file_metrics,
+            left_on='number',
+            right_on='number',
+            how='left',
+            suffixes=('_source', '_target')
+        )
+        df_features['pctg_mod_file_dep_cha'] = df_features.apply(self.calc_mod_file_dep_cha, axis=1)
+
         df_features['is_dependent'] = df_features['number'].map(lambda nbr: 1 if nbr in dependent_changes_loc else 0)
         df_features['is_cross'] = df_features['number'].map(self.is_cross_project)
 
         # Create dictionaries for quick lookups
         self.changed_files = dict(zip(df_changes['number'], df_changes['changed_files']))
         self.changes_description = dict(zip(df_changes['number'], df_changes['commit_message']))
-        self.added_lines = dict(zip(df_changes['number'], df_changes['added_lines']))
-        self.deleted_lines = dict(zip(df_changes['number'], df_changes['deleted_lines']))
+        self.added_lines = dict(zip(df_changes['number'], df_changes['insertions']))
+        self.deleted_lines = dict(zip(df_changes['number'], df_changes['deletions']))
         
         del df_changes  # Free up memory
 
@@ -95,7 +117,7 @@ class PairMetricsGenerator:
 
         # Calculate percentages
         df['pctg_cross_project_changes'] = df.apply(self.compute_pctg_cross_project_changes, axis=1)
-        df['pctg_whole_cross_project_changes'] = df.apply(self.compute_pctg_whole_cross_project_changes, axis=1)
+        # df['pctg_whole_cross_project_changes'] = df.apply(self.compute_pctg_whole_cross_project_changes, axis=1)
         df['pctg_cross_project_changes_owner'] = df.apply(self.compute_ptg_cross_project_changes_owner, axis=1)
         
         return df
@@ -152,7 +174,7 @@ class PairMetricsGenerator:
         changes_nbr = self.df.loc[
             (self.df['project'] == row['project_source']) &
             (self.df['created'] < row['Target_date']) &
-            (self.df['owner_account_id'] == row['owner_account_id_target']),
+            (self.df['owner_account_id'] == row['Target_author']),
             'number'
         ].nunique()
 
@@ -160,7 +182,7 @@ class PairMetricsGenerator:
 
     def count_rev_in_src_change(self, row):
         """Count reviewer's changes in the source project"""
-        account_id = row['owner_account_id_target']
+        account_id = row['Target_author']
         reviewers = self.df.loc[
             (self.df['project'] == row['project_source']) &
             (self.df['created'] < row['Target_date']) & 
@@ -175,13 +197,18 @@ class PairMetricsGenerator:
             (self.df_dependent_changes['Target_repo'] == row['project_target']) &
             (self.df_dependent_changes['Target_date'] < row['Target_date'])
         ])
+    
+    def is_pair_cross(self, row):
+        if row['related'] is True and (row['project_source'] != row['project_target']):
+            return 1
+        return 0
 
     def count_changed_files_overlap(self, row):
         """Calculate the overlap in changed files between source and target"""
-        files1 = self.changed_files[row['Source']]
-        file2 = self.changed_files[row['Target']]
-        
-        return len(files1 & file2) / len(files1 | file2) if len(files1 | file2) > 0 else 0
+        files1 = set(self.changed_files[row['Source']])
+        files2 = set(self.changed_files[row['Target']])
+        common_files = files1.intersection(files2)
+        return len(files1.union(files2)) / len(common_files) if len(common_files) > 0 else 0
 
     def assign_past_changes(self, row, X):
         """Assign past changes to a target change"""
@@ -204,19 +231,20 @@ class PairMetricsGenerator:
         logger.info(f'******** Started building pairs for fold {target} ********')
         path = osp.join('.', 'Files', 'Data', label, target)
         X = pd.read_csv(path)
+        additional_attrs = ['number', 'created', 'project', 'owner_account_id']
+
+        # X = pd.merge(
+        #     left=X, 
+        #     right=self.df[], 
+        #     left_on='Source', 
+        #     right_on='number', 
+        #     how='left',
+        #     suffixes=('_source', '_target')
+        # )
 
         X = pd.merge(
             left=X, 
-            right=self.df[['number', 'created', 'project', 'owner_account_id', 'reviewers']], 
-            left_on='Source', 
-            right_on='number', 
-            how='left',
-            suffixes=('_source', '_target')
-        )
-
-        X = pd.merge(
-            left=X, 
-            right=self.df[self.METRICS + ['number']], 
+            right=self.df[self.METRICS + additional_attrs], 
             left_on='Source', 
             right_on='number', 
             how='inner',
@@ -224,12 +252,20 @@ class PairMetricsGenerator:
         )
         X = pd.merge(
             left=X, 
-            right=self.df[self.METRICS + ['number']], 
+            right=self.df[self.METRICS + additional_attrs], 
             left_on='Target', 
             right_on='number', 
             how='inner',
-            suffixes=('_target', '_source')
+            suffixes=('_source', '_target')
         )
+
+         # Rename columns for clarity
+        X.rename(columns={
+            "owner_account_id_source": "Source_author",
+            "owner_account_id_target": "Target_author",
+            "created_source": "Source_date",
+            "created_target": "Target_date"
+        }, inplace=True)
 
         # Calculate various metrics
         X['changed_files_overlap'] = X.apply(self.count_changed_files_overlap, axis=1)
@@ -251,21 +287,26 @@ class PairMetricsGenerator:
         X['dev_in_src_change_nbr'] = X.apply(self.count_dev_in_src_change, axis=1)
         logger.info(f'** dev_in_src_change_nbr for {target} generated **')
         
-        X['rev_in_src_change_nbr'] = X.apply(self.count_rev_in_src_change, axis=1)
-        logger.info(f'** rev_in_src_change_nbr for {target} generated **')
+        # X['rev_in_src_change_nbr'] = X.apply(self.count_rev_in_src_change, axis=1)
+        # logger.info(f'** rev_in_src_change_nbr for {target} generated **')
         
         X['src_trgt_co_changed_nbr'] = X.apply(self.count_src_trgt_co_changed, axis=1)
         logger.info(f'** src_trgt_co_changed_nbr for {target} generated **')
 
+        X['is_cross'] = X.apply(self.is_pair_cross, axis=1)
+        logger.info(f'** is_cross for {target} generated **')
+
         # Drop unnecessary columns
         X.drop(columns=[
             'number_source', 'number_target', 'reviewers', 
-            'project_source', 'project_target', 
-            'owner_account_id_source', 'owner_account_id_target'
+            'project_source', 'project_target'
+            # 'owner_account_id_source', 'owner_account_id_target'
         ], axis=1, inplace=True)
+
         
         # Save the results
         X.to_csv(path, index=None)
+        logger.info(f'** {target} successfully saved to the {path} **')
 
         return target
     
