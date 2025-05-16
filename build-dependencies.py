@@ -1,6 +1,7 @@
 import pandas as pd
 import re
 import os
+from datetime import datetime
 import utils.helpers as hpr
 
 
@@ -116,6 +117,89 @@ class OpenStackDependencyGenerator:
 
         return obj
     
+    def time_diff(self, start, end):
+        if start > end:
+            start, end = end, start
+        current_date =  datetime.strptime(end, "%Y-%m-%d %H:%M:%S") 
+        previous_date = datetime.strptime(start, "%Y-%m-%d %H:%M:%S") 
+        diff = current_date - previous_date
+        diff = float("{:.2f}".format(diff.total_seconds() / 3600))
+        return diff
+
+
+    def extract_attr(self, x, attr):
+        '''Extracts the passed-on parameter values out of the commit message 
+        '''
+        rs = re.findall("%s:\s[a-zA-Z0-9/\.\:\+\-\#]{6,}" % (attr), x)
+        result = []
+        for row in rs:
+            row = row[len(attr) + 2:]
+            change_id_pattern = re.search(r"[a-zA-Z0-9]{41}", row)
+            if change_id_pattern:
+                result.append(change_id_pattern[0])
+                continue
+            number_pattern = re.search("#?https?[\:][/]{2}review[\.](opendev|openstack)[\.]org([a-z0-9A-Z\-\+/\.#]*)\d+", row)
+            if number_pattern:
+                result.append(int(re.search("\d+$", number_pattern[0][0:])[0]))
+        return result if len(result) != 0 else None
+
+
+    def retrieve_revision_date(self, row, attr, return_revision_date=True):
+        number = None
+        second_number = None
+
+        if attr == "Depends-On":
+            number = row["Target"]
+            second_number = row["Source"]
+            change_id = row["Source_change_id"]
+        else:
+            number = row["Source"]
+            second_number = row["Target"]
+            change_id = row["Target_change_id"]
+
+        df_row = df.loc[df["number"] == number]
+        revisions = ast.literal_eval(df_row["revisions"].values[0])
+        revisions = sorted(revisions, key=lambda x: x["created"])
+        if  len(revisions) == 1:
+            if return_revision_date:
+                return revisions[0]["created"][:-11]
+            else:
+                return 1
+
+        first_revision = revisions[0]
+        first_message = first_revision["message"]
+
+        results = self.extract_attr(first_message, attr)
+
+        if results and ((change_id in results) or (second_number in results)):
+            if return_revision_date:
+                return first_revision["created"][:-11]
+            else:
+                return 1
+
+        for i in range(1,len(revisions)):
+            current_message = revisions[i]["message"]
+            created = revisions[i]["created"]
+            results = self.extract_attr(current_message, attr)
+            
+            if results and ((change_id in results) or (second_number in results)):
+
+                if return_revision_date:
+                    return created[:-11]
+                else:
+                    return i + 1
+
+    def is_same_developer(self, row):
+        return "Same" if row["Source_dev"] == row["Target_dev"] else "Different"
+
+    def identify_dependency(self, row):
+        source_date = row["Source_date"] 
+        target_date = row["Target_date"]
+        link_date = datetime.strptime(row["link_date"], "%Y-%m-%d %H:%M:%S")
+        delta2 = (source_date - link_date).total_seconds() / (60 * 60)
+
+        return abs(delta2)
+
     def generate_os_evolution_data(self):
         """
         Generate OpenStack evolution files containing:
@@ -146,6 +230,14 @@ class OpenStackDependencyGenerator:
         df_depends_on = df_depends_on.loc[:, evolution_columns]
         df_depends_on.drop_duplicates(subset=["Source", "Target"], inplace=True)
         df_depends_on["Source"] = df_depends_on[["Source"]].astype(int)
+
+        df_depends_on["is_cross"] = df_depends_on.apply(lambda row: "Cross" if row["Source_repo"] != row["Target_repo"] else "Same", axis=1)
+
+        df_depends_on["link_date"] = df_depends_on.apply(self.retrieve_revision_date, args=("Depends-On",), axis=1)
+        df_depends_on["worked_revisions"] = df_depends_on.apply(self.retrieve_revision_date, args=("Depends-On",False,), axis=1)
+        df_depends_on["same_dev"] = df_depends_on.apply(self.is_same_developer, axis=1)
+        df_depends_on["when_identified"] = df_depends_on[["Source_date", "Target_date", "link_date"]].apply(self.identify_dependency, axis=1)
+        df_depends_on["deps_label"] = "Depends-On"
         
         # Process needed_by relationships
         print("Processing 'Needed-By' relationships...")
@@ -157,6 +249,14 @@ class OpenStackDependencyGenerator:
         df_needed_by = df_needed_by.explode(column="Target").reset_index(drop=True)
         df_needed_by = df_needed_by.loc[:, evolution_columns]
         df_needed_by["Target"] = df_needed_by[["Target"]].astype(int)
+
+        df_needed_by["is_cross"] = df_needed_by.apply(lambda row: "Cross" if row["Source_repo"] != row["Target_repo"] else "Same", axis=1)
+
+        df_needed_by["link_date"] = df_needed_by.apply(self, self.retrieve_revision_date, args=("Depends-On",), axis=1)
+        df_needed_by["worked_revisions"] = df_needed_by.apply(self, self.retrieve_revision_date, args=("Depends-On",False,), axis=1)
+        df_needed_by["same_dev"] = df_needed_by.apply(self, self.is_same_developer, axis=1)
+        df_needed_by["when_identified"] = df_needed_by[["Source_date", "Target_date", "link_date"]].apply(self.identify_dependency, axis=1)
+        df_needed_by["deps_label"] = "Needed-By"
 
         # Combine depends_on and needed_by dataframes
         print("Combining relationship data...")
@@ -188,8 +288,8 @@ class OpenStackDependencyGenerator:
             "status_target": "Target_status",
             "author_source": "Source_author",
             "status_author": "Target_status",
-            "created_source": "Source_created",
-            "created_target": "Target_created",
+            "created_source": "Source_date",
+            "created_target": "Target_date",
             "change_id_target": "Target_change_id",
             "change_id_source": "Source_change_id",
             "is_owner_bot_target": "Target_is_owner_bot",
