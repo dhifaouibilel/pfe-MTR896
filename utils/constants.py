@@ -72,15 +72,15 @@ FILE_METRICS = [
     'num_dev_modified_files',
     'avg_num_dev_modified_files',
     'pctg_mod_file_dep_cha',
-    'min_mod_file_dep_cha',
-    'median_mod_file_dep_cha',
-    'max_mod_file_dep_cha'
+    'min_num_mod_file_dep_cha',
+    'median_num_mod_file_dep_cha',
+    'max_num_mod_file_dep_cha'
 ]
 TEXT_METRICS = [
     # Text dimension
     'description_word_count',
     'description_length',
-    'subject_word_count',
+    # 'subject_word_count',
     'subject_length'
 ]
 

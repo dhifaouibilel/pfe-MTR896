@@ -197,4 +197,5 @@ def combine_file_metrics(path=None):
     for file in files:
         df_item = pd.read_csv(osp.join(path, file))
         df = pd.concat((df, df_item))
+    df.drop(columns=["owner_account_id", 'status'], inplace=True)
     return df
