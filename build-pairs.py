@@ -8,19 +8,23 @@ from imblearn.under_sampling import RandomUnderSampler
 from utils import helpers as hpr
 import concurrent.futures
 
+from logging_config import get_logger
+
 df_changes = None
 target_numbers = None
 df_dependencies = None
+
+logger = get_logger()
 
 def build_cross_project_pairs(file):
     path = osp.join('.', 'Files', 'Data', 'Model3', file)
     df = pd.read_csv(path)
     if (df.empty == False):
-        print(f'******** Strated processing {file} ********')
+        logger.info(f'******** Strated processing {file} ********')
         df.drop(columns=['project', 'owner_account_id', 'number_target', 'number_source', 'number', 'created_target', 'created_source'], axis=1, inplace=True)
-        print(f'******** File {file} processed successfully ********')
+        logger.info(f'******** File {file} processed successfully ********')
     #     os.remove(osp.join(path))
-    #     print(f'******** File {file} deleted successfully ********')
+    #     logger.info(f'******** File {file} deleted successfully ********')
     # else:
         # df['created_source'] = pd.to_datetime(df['created_source'])
         # df['created_target'] = pd.to_datetime(df['created_target'])
@@ -49,13 +53,13 @@ def assign_past_changes(row):
     return set(source_changes)
 
 def build_pairs(target, fold):
-    print(f'******** Started building pairs of changes for Fold {fold}')
+    logger.info(f'******** Started building pairs of changes for Fold {fold}')
     X = df_changes.loc[df_changes['number'].isin(target), ['number', 'created']]
     X = X.rename(columns={'number': 'Target'})
     X['Source'] = X.apply(assign_past_changes, axis=1)
-    print(f'Source changes assigned Fold {fold}')
+    logger.info(f'Source changes assigned Fold {fold}')
     X = X.explode(column='Source')
-    print(f'Source changes exploded Fold {fold}')
+    logger.info(f'Source changes exploded Fold {fold}')
     X.dropna(subset=['Source'], inplace=True)
     X = pd.merge(
         left=X, 
@@ -89,7 +93,7 @@ def process_folds(fold, train_idx, test_idx):
     test_numbers = target_numbers[test_idx]
 
     df_train = build_pairs(train_numbers, fold)
-    print(f"Training set for Fold {fold} has been processed")
+    logger.info(f"Training set for Fold {fold} has been processed")
     y_train = df_train['related']
     df_train = df_train.drop(columns=['related'])
 
@@ -100,7 +104,7 @@ def process_folds(fold, train_idx, test_idx):
     df_train['related'] = y_train
 
     df_test = build_pairs(test_numbers, fold)
-    print(f"Test set for Fold {fold} has been processed")
+    logger.info(f"Test set for Fold {fold} has been processed")
     test_pos = df_test[df_test['related']==1]
     test_neg = df_test[df_test['related']==0]
 
@@ -109,8 +113,8 @@ def process_folds(fold, train_idx, test_idx):
 
     df_test = pd.concat((test_pos, test_neg))
 
-    df_train.to_csv(osp.join(".", "Files", "Data", "Train", f"{fold}.csv"))
-    df_test.to_csv(osp.join(".", "Files", "Data", "Test", f"{fold}.csv"))
+    df_train.to_csv(osp.join(".", "Files", "Data", "Train", f"{fold}.csv"), index=None)
+    df_test.to_csv(osp.join(".", "Files", "Data", "Test", f"{fold}.csv"), index=None)
 
     return f"Fold{fold} processed successfully!"
 
@@ -157,7 +161,7 @@ def init_global_vars():
 
 if __name__ == '__main__':
     
-    print(f"Script {__file__} started...")
+    logger.info(f"Script {__file__} started...")
     
     start_date, start_header = hpr.generate_date("This script started at")
 
@@ -169,14 +173,14 @@ if __name__ == '__main__':
         results = [executor.submit(process_folds, fold, train_idx, test_idx) for fold, (train_idx, test_idx) in enumerate(tscv.split(target_numbers))]
 
         for out in concurrent.futures.as_completed(results):
-            print(out.result())
+            logger.info(out.result())
     
     end_date, end_header = hpr.generate_date("This script ended at")
 
-    print(start_header)
+    logger.info(start_header)
 
-    print(end_header)
+    logger.info(end_header)
 
     hpr.diff_dates(start_date, end_date)
 
-    print(f"Script {__file__} ended\n")
+    logger.info(f"Script {__file__} ended\n")
