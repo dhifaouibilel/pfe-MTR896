@@ -16,25 +16,6 @@ df_dependencies = None
 
 logger = get_logger()
 
-def build_cross_project_pairs(file):
-    path = osp.join('.', 'Files', 'Data', 'Model3', file)
-    df = pd.read_csv(path)
-    if (df.empty == False):
-        logger.info(f'******** Strated processing {file} ********')
-        df.drop(columns=['project', 'owner_account_id', 'number_target', 'number_source', 'number', 'created_target', 'created_source'], axis=1, inplace=True)
-        logger.info(f'******** File {file} processed successfully ********')
-    #     os.remove(osp.join(path))
-    #     logger.info(f'******** File {file} deleted successfully ********')
-    # else:
-        # df['created_source'] = pd.to_datetime(df['created_source'])
-        # df['created_target'] = pd.to_datetime(df['created_target'])
-        
-        # seven_days_ago = df['created_target'].head(1).tolist()[0] - timedelta(days=7)
-        # df = df[df['created_source'] >= seven_days_ago]
-        
-        # df.to_csv(path, index=None)
-
-    return file
 
 def assign_past_changes(row):
     days_offset = row['created'] - timedelta(days=39)
@@ -108,8 +89,8 @@ def process_folds(fold, train_idx, test_idx):
     test_pos = df_test[df_test['related']==1]
     test_neg = df_test[df_test['related']==0]
 
-    test_pos = test_pos.sample(n=int(len(test_pos)*.05), random_state=42)
-    test_neg = test_neg.sample(n=int(len(test_neg)*.05), random_state=42)
+    test_pos = test_pos.sample(n=int(len(test_pos)*.10), random_state=42)
+    test_neg = test_neg.sample(n=int(len(test_neg)*.10), random_state=42)
 
     df_test = pd.concat((test_pos, test_neg))
 
@@ -131,23 +112,23 @@ def init_global_vars():
     df_changes_loc = df_changes_loc.drop_duplicates(subset=['change_id'], keep='last')
 
 
-    df_deps_red = df_dependencies_loc[['when_identified']]
+    # df_deps_red = df_dependencies_loc[['when_identified']]
 
-    # Calculate Z-scores
-    z_scores = np.abs((df_deps_red - df_deps_red.mean()) / df_deps_red.std())
+    # # Calculate Z-scores
+    # z_scores = np.abs((df_deps_red - df_deps_red.mean()) / df_deps_red.std())
 
-    # Set a threshold for identifying outliers
-    threshold = 3
+    # # Set a threshold for identifying outliers
+    # threshold = 3
 
-    # Filter out the outliers
-    df_clean = df_deps_red[(z_scores < threshold).all(axis=1)]
+    # # Filter out the outliers
+    # df_clean = df_deps_red[(z_scores < threshold).all(axis=1)]
 
-    df_dependencies_loc = df_dependencies_loc[df_dependencies_loc.index.isin(df_clean.index)]
+    # df_dependencies_loc = df_dependencies_loc[df_dependencies_loc.index.isin(df_clean.index)]
 
     dependent_changes = set(df_dependencies_loc['Source'].tolist() + df_dependencies_loc['Target'].tolist())
     df_changes_loc = df_changes_loc[df_changes_loc['number'].isin(dependent_changes)]
 
-    target_numbers_loc = df_changes_loc['number'].unique()
+    target_numbers_loc = df_dependencies_loc['Target'].unique()
 
     global df_changes
     df_changes = df_changes_loc
