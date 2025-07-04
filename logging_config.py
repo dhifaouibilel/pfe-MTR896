@@ -3,10 +3,8 @@ import logging
 # from rich.logging import RichHandler
 
 
-def get_logger(name="change-predictor", level=logging.INFO, model_name: str = None, simil_cutoff: float = None):
+def get_logger(name="change-predictor", level=logging.INFO, log_filename: str = "application"):
     logger = logging.getLogger(name)
-
-    log_filename = "application"
 
     if not logger.hasHandlers():
         logging.basicConfig(

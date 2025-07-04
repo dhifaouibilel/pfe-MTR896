@@ -15,11 +15,12 @@ library(ScottKnottESD)
 
 ```{r}
 PATH = "/Users/aliarabat/Documents/PhD/projects/change-predictor"
-first_feat_impo <- read.csv(paste(PATH, "Results", "Feature_importance", "first_feat_impo.csv", sep="/"))
-second_feat_impo <- read.csv(paste(PATH, "Results", "Feature_importance", "second_feat_impo.csv", sep="/"))
+first_feat_impo <- read.csv(paste(PATH, "Results", "Feature_importance", "first_feat_impo_new.csv", sep="/"))
+second_feat_impo <- read.csv(paste(PATH, "Results", "Feature_importance", "second_feat_impo_new.csv", sep="/"))
+second_feat_impo<-second_feat_impo[second_feat_impo$pair_type=="All",] %>% select(-ncol(.))
 all_cros_chan_count <- read.csv(paste(PATH, "Files", "all_cros_chan_count.csv", sep="/"))
 dep_chan_count <- read.csv(paste(PATH, "Files", "dep_chan_count.csv", sep="/"))
-deps_evolution <- read.csv(paste(PATH, "Files", "Preliminary", "deps_evolution.csv", sep="/"))
+deps_evolution <- read.csv(paste(PATH, "Files", "Preliminary", "deps_evolution2.csv", sep="/"))
 deps_ident <- read.csv(paste(PATH, "Files", "Preliminary", "deps_ident.csv", sep="/"))
 ```
 
@@ -29,7 +30,7 @@ deps_ident <- read.csv(paste(PATH, "Files", "Preliminary", "deps_ident.csv", sep
 # example
 
 # Using Non-Parametric ScottKnott ESD test
-# sk <- sk_esd(first_feat_impo)
+sk <- sk_esd(first_feat_impo)
 # plot(sk)
 
 sk <- sk_esd(second_feat_impo)
@@ -99,7 +100,7 @@ p2
 ```{r}
 p3<-deps_evolution %>%
   mutate(Year=paste(Year, ""))%>%
-  ggplot(aes(x=Year, y = percentage, colour = Status, group=Status)) + 
+  ggplot(aes(x=Year, y = percentage, group=Status)) + 
   geom_line() +
   geom_point() +
   theme_linedraw() +

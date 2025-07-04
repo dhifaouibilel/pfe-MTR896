@@ -295,3 +295,41 @@ def compute_shared_desc_tokens(row, changes_description):
     intersect = len(desc_src.intersection(desc_trg))
     union = len(desc_src.union(desc_trg))
     return intersect/union if union != 0 else 0
+
+def compute_topk_precision_recall(df: pd.DataFrame, k=3):
+    # Store results
+    results = []
+
+    # Group by Target
+    filtered_target_ids = df.loc[df["related"]==1, 'Target'].unique()
+    grouped = df[df['Target'].isin(filtered_target_ids)].groupby('Target')
+
+    for target, group in grouped:
+        # Sort by prediction score in descending order
+        topk = group.sort_values(by=['pred'], ascending=[False]).head(k)
+        topk['pred'] = topk['pred'].map(lambda pred: 1 if pred > 0.5 else 0)
+
+        # True positives in top-3
+        tp_topk = len(topk[(topk['related']==1)&((topk['pred']==1))])
+        fp_topk = len(topk[(topk['related']==0)&((topk['pred']==1))])
+        # fn_topk = len(topk[(topk['related']==1)&((topk['pred']==0))])
+        fn_topk = len(df[
+            (df['Target']==target)&
+            (df['related']==1)&
+            (df['pred']<=0.5)
+        ])
+
+        # Precision: TP in top-3 / 3
+        precision = tp_topk / (tp_topk + fp_topk) if (tp_topk + fp_topk) != 0 else 0
+
+        # Recall: TP in top-3 / all actual related
+        recall = tp_topk / (tp_topk + fn_topk) if (tp_topk + fn_topk) !=0 else 0
+
+        results.append({
+            'Target': target,
+            f'Top{k}_Precision': precision,
+            f'Top{k}_Recall': recall
+            # 'Actual_Related': actual_positives
+        })
+
+    return pd.DataFrame(results)

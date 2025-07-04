@@ -7,9 +7,12 @@ import json
 import requests as rq
 import ast
 import re
+from http import HTTPStatus
 import urllib.parse
 import utils.helpers as hpr
+from logging_config import get_logger
 
+logger = get_logger()
 
 class OpenstackChangedLinesRetrieval:
     """
@@ -25,10 +28,12 @@ class OpenstackChangedLinesRetrieval:
             base_dir (str): Base directory for operations and file storage
         """
         self.base_dir = base_dir
-        self.changes_dir = osp.join(base_dir, 'Changes2')
+        self.changes_dir = osp.join(base_dir, 'Changes3')
         self.files_dir = osp.join(base_dir, 'Files')
         self.processed_files_path = osp.join(self.files_dir, 'processed_files.csv')
         self.unprocessed_files_path = osp.join(self.files_dir, 'unprocessed_files.csv')
+
+        self.dependent_changes = None
 
     def retrieve_changed_files(self, project, number, revision):
         """
@@ -101,6 +106,51 @@ class OpenstackChangedLinesRetrieval:
         row['added_lines'] = re.sub(r'\s+', ' ', added_lines)
         row['deleted_lines'] = re.sub(r'\s+', ' ', deleted_lines)
         return row
+    
+    def retrieve_raw_modified_files(self, row):
+        """
+        Retrieve added and deleted lines for each file in a change.
+
+        Args:
+            row (pandas.Series): Row representing a change with project, number, and revisions info
+
+        Returns:
+            pandas.Series: Updated row with added and deleted lines, changed files, and files count
+        """
+        project = urllib.parse.quote(row['project'], safe='')
+        nbr = row['number']
+
+        # Extract revision from the revisions field (stored as string representation of list)
+        revision = ast.literal_eval(row['revisions'])[0]['number']
+        
+        # Get the list of changed files
+        changed_files = row['changed_files']
+        row['files_count'] = len(changed_files)
+
+        if len(changed_files) == 0:
+            row['raw_changed_files'] = None
+            return row
+
+        # Sort files for consistent processing
+        sorted(changed_files)
+        
+        result = {file: None for file in changed_files}
+
+        # Process each file to get added/deleted lines
+        for f in changed_files:
+            file = urllib.parse.quote(f, safe='')
+            url = f'https://review.opendev.org/changes/{project}~{nbr}/revisions/{revision}/files/{file}/diff?intraline&whitespace=IGNORE_NONE'
+
+            change_response = rq.get(url)
+            if change_response.status_code == HTTPStatus.NOT_FOUND:
+                logger.info(f"{url=}")
+                continue
+            data = change_response.text.split("\n")[1]  # Skip the first line
+            data = json.loads(data)
+            
+            result[f] = data
+        row['raw_changed_files'] = result
+        return row
 
     def process_csv_file(self, file_name):
         """
@@ -172,6 +222,10 @@ class OpenstackChangedLinesRetrieval:
         except subprocess.CalledProcessError as e:
             print("Error executing the command:", e)
 
+    def retrieve_dependent_changes(self):
+        dependent_changes = pd.read_csv(osp.join('.', 'Files', 'source_target_evolution2.csv'))
+        self.dependent_changes = set(hpr.flatten_list(dependent_changes[['Source', 'Target']]))
+
     def process_all_files(self, use_concurrent=True):
         """
         Process all remaining files that haven't been processed yet.
@@ -221,6 +275,42 @@ class OpenstackChangedLinesRetrieval:
                     df_processed_files.to_csv(self.processed_files_path, index=None)
                     
         return processed_files
+    
+    def process_single_file(self, file_path: str):
+        """
+        Process a single CSV file to retrieve added and deleted lines for each change.
+
+        Args:
+            file_name (str): Name of the CSV file to process
+
+        Returns:
+            str or None: File name if processing was successful, None otherwise
+        """
+        try:
+            print(f'Processing {file_path} file started...')
+
+            df = pd.read_csv(file_path)
+            # df = df.iloc[:50]
+            
+            # Convert string representation of list to actual list
+            df['changed_files'] = df['changed_files'].map(ast.literal_eval)
+
+            # Process each row to retrieve added and deleted lines
+            df = df.apply(self.retrieve_raw_modified_files, axis=1)
+
+            # Save the updated dataframe back to the CSV file
+            df.to_csv(file_path, index=None)
+            
+            print(f'File {file_path} processed successfully...')
+            
+            return file_path
+        except Exception as ex:
+            print(f'Error while processing the following file: {file_path}')
+            print(f'Exception: {ex}')
+
+            # Track unprocessed files
+            self.track_unprocessed_file(file_path)
+            return None 
 
     def run(self):
         """
@@ -233,9 +323,16 @@ class OpenstackChangedLinesRetrieval:
         # Ensure directories exist
         os.makedirs(self.changes_dir, exist_ok=True)
         os.makedirs(self.files_dir, exist_ok=True)
+
+        # set dependent changes
+        # self.retrieve_dependent_changes()
         
         # Process all files
-        self.process_all_files()
+        # self.process_all_files()
+        
+        # Process single file
+        file_path = osp.join(".", "Files", "changed_files.csv")
+        self.process_single_file(file_path)
 
         end_date, end_header = hpr.generate_date("This script ended at")
 

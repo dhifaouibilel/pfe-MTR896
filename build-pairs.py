@@ -2,6 +2,8 @@ import os
 import os.path as osp
 import pandas as pd
 import numpy as np
+import math
+import random
 from datetime import timedelta, datetime
 from sklearn.model_selection import TimeSeriesSplit
 from imblearn.under_sampling import RandomUnderSampler
@@ -18,7 +20,7 @@ logger = get_logger()
 
 
 def assign_past_changes(row):
-    days_offset = row['created'] - timedelta(days=39)
+    days_offset = row['created'] - timedelta(days=15)
     source_changes = df_changes.loc[
         (df_changes['created'] < row['created']) &
         (df_changes['created'] >= days_offset),
@@ -28,9 +30,9 @@ def assign_past_changes(row):
     # if len(source_changes) >= 60:
     #     source_changes = random.sample(source_changes, 60)
     
-    source_changes += df_dependencies.loc[
-        (df_dependencies['Target']==row['Target']), 
-        'Source'].tolist()
+    # source_changes += df_dependencies.loc[
+    #     (df_dependencies['Target']==row['Target']), 
+    #     'Source'].tolist()
     return set(source_changes)
 
 def build_pairs(target, fold):
@@ -73,32 +75,57 @@ def process_folds(fold, train_idx, test_idx):
     train_numbers = target_numbers[train_idx]
     test_numbers = target_numbers[test_idx]
 
-    df_train = build_pairs(train_numbers, fold)
+    # df_train = build_pairs(train_numbers, fold)
     logger.info(f"Training set for Fold {fold} has been processed")
-    y_train = df_train['related']
-    df_train = df_train.drop(columns=['related'])
+    # y_train = df_train['related']
+    # df_train = df_train.drop(columns=['related'])
 
-    ros = RandomUnderSampler(random_state=42)
+    # ros = RandomUnderSampler(random_state=42)
         
     # Perform under-sampling of the majority class(es)
-    df_train, y_train = ros.fit_resample(df_train, y_train)
-    df_train['related'] = y_train
+    # df_train, y_train = ros.fit_resample(df_train, y_train)
+    # df_train['related'] = y_train
 
-    df_test = build_pairs(test_numbers, fold)
+    # rand_represe_sample = select_representative_sample(list(test_numbers))
+
+    # Set a seed for reproducibility (e.g., 42)
+    random.seed(42)
+
+    # Take a random sample of 100 (without replacement)
+    rand_represe_sample = random.sample(test_numbers.tolist(), 100)
+
+    df_test = build_pairs(rand_represe_sample, fold)
     logger.info(f"Test set for Fold {fold} has been processed")
-    test_pos = df_test[df_test['related']==1]
-    test_neg = df_test[df_test['related']==0]
+    # test_pos = df_test[df_test['related']==1]
+    # test_neg = df_test[df_test['related']==0]
 
-    test_pos = test_pos.sample(n=int(len(test_pos)*.10), random_state=42)
-    test_neg = test_neg.sample(n=int(len(test_neg)*.10), random_state=42)
+    # test_pos = test_pos.sample(n=int(len(test_pos)*.10), random_state=42)
+    # test_neg = test_neg.sample(n=int(len(test_neg)*.10), random_state=42)
 
-    df_test = pd.concat((test_pos, test_neg))
+    # df_test = pd.concat((test_pos, test_neg))
 
-    df_train.to_csv(osp.join(".", "Files", "Data", "Train", f"{fold}.csv"), index=None)
-    df_test.to_csv(osp.join(".", "Files", "Data", "Test", f"{fold}.csv"), index=None)
+    # df_train.to_csv(osp.join(".", "Files", "Data", "Train", f"temp_{fold}.csv"), index=None)
+    df_test.to_csv(osp.join(".", "Files", "Data", "Test", f"temp100_15_{fold}.csv"), index=None)
 
     return f"Fold{fold} processed successfully!"
 
+def calculate_sample_size(population_size, confidence_level=0.95, margin_of_error=0.05, p=0.5):
+    # Z-score for 95% confidence
+    Z = 1.96 if confidence_level == 0.95 else 1.64 if confidence_level == 0.90 else 2.58
+    e = margin_of_error
+
+    # Initial sample size estimate
+    n = (Z**2 * p * (1 - p)) / (e**2)
+
+    # Adjust for finite population
+    n_adj = n / (1 + ((n - 1) / population_size))
+    return math.ceil(n_adj)
+
+def select_representative_sample(data, seed=42, confidence_level=0.95, margin_of_error=0.05):
+    population_size = len(data)
+    sample_size = calculate_sample_size(population_size, confidence_level, margin_of_error)
+    random.seed(seed)
+    return random.sample(data, sample_size)
 
 def init_global_vars():
     df_dependencies_loc = pd.read_csv(osp.join(".", "Files", "source_target_evolution_clean.csv"))
@@ -125,8 +152,8 @@ def init_global_vars():
 
     # df_dependencies_loc = df_dependencies_loc[df_dependencies_loc.index.isin(df_clean.index)]
 
-    dependent_changes = set(df_dependencies_loc['Source'].tolist() + df_dependencies_loc['Target'].tolist())
-    df_changes_loc = df_changes_loc[df_changes_loc['number'].isin(dependent_changes)]
+    # dependent_changes = set(df_dependencies_loc['Source'].tolist() + df_dependencies_loc['Target'].tolist())
+    # df_changes_loc = df_changes_loc[df_changes_loc['number'].isin(dependent_changes)]
 
     target_numbers_loc = df_dependencies_loc['Target'].unique()
 

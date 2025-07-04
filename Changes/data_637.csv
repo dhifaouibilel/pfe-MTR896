@@ -1,0 +1,409 @@
+id,project,branch,change_id,subject,status,created,updated,insertions,deletions,reviewers,messages,total_comment_count,revisions,number,current_revision,owner_account_id,owner_name,owner_username,is_owner_bot,commit_message,changed_files
+openstack%2Fcongress~528397,openstack/congress,master,I7746f83591135f8224c36fc66ae178d9ce1a8a14,Updated from global requirements,MERGED,2017-12-15 21:24:25.000000000,2017-12-18 05:09:50.000000000,1,1,"[{'_account_id': 11278, 'name': 'Anusha Ramineni', 'email': 'anusha.ramineni@india.nec.com', 'username': 'anusha08'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 1, 'created': '2017-12-15 21:24:25.000000000', 'files': ['requirements.txt'], 'message': 'Updated from global requirements\n\nChange-Id: I7746f83591135f8224c36fc66ae178d9ce1a8a14\n'}]",528397,b69d234197ed726dd30e112b361dfcf83ee8380d,11131,OpenStack Proposal Bot,proposal-bot,1,"Updated from global requirements
+
+Change-Id: I7746f83591135f8224c36fc66ae178d9ce1a8a14
+",['requirements.txt']
+openstack%2Fkolla~527996,openstack/kolla,master,I7701b768d1189db750c8d0818ced90c4ec508d22,"Revert ""Fix deployment of ceph""",MERGED,2017-12-14 15:49:55.000000000,2017-12-18 05:04:01.000000000,0,23,"[{'_account_id': 11869, 'name': 'zhubingbing', 'email': 'zhu.bingbing@99cloud.net', 'username': 'zhubingbing'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 22582, 'name': 'Duong Ha-Quang', 'email': 'quangduongha@gmail.com', 'username': 'duonghq'}]",,0,"[{'number': 1, 'created': '2017-12-14 15:49:55.000000000', 'files': ['docker/base/apt_preferences.ubuntu'], 'message': 'Revert ""Fix deployment of ceph""\n\nSince we have bump to ceph luminous. So no need to pin the ceph version\nany more.\n\nThis reverts commit a0b60bff4386a98a7e2c3e4d549738d34134f4dd.\n\nChange-Id: I7701b768d1189db750c8d0818ced90c4ec508d22\n'}]",527996,2e77b1dcf36dc63bbbae29c9931a84b637db9d65,7488,Jeffrey Zhang,Jeffrey4l,0,"Revert ""Fix deployment of ceph""
+
+Since we have bump to ceph luminous. So no need to pin the ceph version
+any more.
+
+This reverts commit a0b60bff4386a98a7e2c3e4d549738d34134f4dd.
+
+Change-Id: I7701b768d1189db750c8d0818ced90c4ec508d22
+",['docker/base/apt_preferences.ubuntu']
+openstack%2Ftricircle~518421,openstack/tricircle,master,I990fa46e887cc0822b8e6d74d199d92e39df0bd6,Distinguish the source of requests,MERGED,2017-11-08 01:40:29.000000000,2017-12-18 04:59:42.000000000,67,0,"[{'_account_id': 11819, 'name': 'Chaoyi Huang', 'email': 'joehuang@huawei.com', 'username': 'joehuang'}, {'_account_id': 12076, 'name': 'Zhiyuan Cai', 'email': 'luckyvega.g@gmail.com', 'username': 'zhiyuan_cai'}, {'_account_id': 19960, 'name': 'newypei', 'email': 'newypei@gmail.com', 'username': 'newypei'}, {'_account_id': 21023, 'name': 'Ronghui Cao', 'email': 'CR_hui@126.com', 'username': 'CR_hui'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 22559, 'name': 'Dongfeng Huang', 'email': 'yingfeicaozhang100527@gmail.com', 'username': 'southeast02'}, {'_account_id': 26235, 'name': 'Lyman Xu', 'email': 'xu_lyman@163.com', 'username': 'lyman-xu'}]",,32,"[{'number': 10, 'created': '2017-12-06 08:44:24.000000000', 'files': ['tricircle/common/constants.py', 'tricircle/network/local_plugin.py', 'tricircle/common/request_source.py', 'devstack/plugin.sh', 'tricircle/network/central_plugin.py'], 'message': ""Distinguish the source of requests\n\n1. What is the problem?\nWhen receiving a request, we don't know whether the request\ncomes from  'Central Neutron' or 'Local Neutron'.\n\n2. What is the solution to the problem?\nIn order to determine the source of requests, we add a\nfilter to get the source message in the header of requests.\nNext step we tag the source message into the context. When\ndeploy the WSGI app, we checkout the User-Agent in the\nrequest's headers and tag the requests.\n\n3. What the features need to be implemented to the Tricircle\nto realize the solution?\nNo\n\nChange-Id: I990fa46e887cc0822b8e6d74d199d92e39df0bd6\n""}]",518421,27346da0510e9fc23cee54e67088474ca9ad1f2b,26235,Lyman Xu,lyman-xu,0,"Distinguish the source of requests
+
+1. What is the problem?
+When receiving a request, we don't know whether the request
+comes from  'Central Neutron' or 'Local Neutron'.
+
+2. What is the solution to the problem?
+In order to determine the source of requests, we add a
+filter to get the source message in the header of requests.
+Next step we tag the source message into the context. When
+deploy the WSGI app, we checkout the User-Agent in the
+request's headers and tag the requests.
+
+3. What the features need to be implemented to the Tricircle
+to realize the solution?
+No
+
+Change-Id: I990fa46e887cc0822b8e6d74d199d92e39df0bd6
+","['tricircle/common/constants.py', 'tricircle/network/local_plugin.py', 'tricircle/common/request_source.py', 'devstack/plugin.sh', 'tricircle/network/central_plugin.py']"
+openstack%2Fstackviz~470825,openstack/stackviz,master,I1ab055efb9bc5653f98be165cd2be3ac9cc5cd27,Fix docs and update its theme,MERGED,2017-06-05 03:15:59.000000000,2017-12-18 04:28:26.000000000,29,20,"[{'_account_id': 3, 'name': 'Jenkins', 'username': 'jenkins'}, {'_account_id': 5689, 'name': 'Masayuki Igawa', 'email': 'masayuki@igawa.io', 'username': 'igawa'}, {'_account_id': 8556, 'name': 'Ghanshyam', 'display_name': 'Ghanshyam Maan', 'email': 'gmaan@ghanshyammann.com', 'username': 'ghanshyam'}, {'_account_id': 9725, 'name': 'Dong Ma', 'email': 'winterma.dong@gmail.com', 'username': 'larainema'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,6,"[{'number': 3, 'created': '2017-12-01 07:31:35.000000000', 'files': ['doc/source/index.rst', 'doc/source/man/stackviz-export.rst', 'test-requirements.txt', 'doc/source/conf.py', 'doc/source/man/stackviz-front.rst'], 'message': 'Fix docs and update its theme\n\nThis commit fixes the stackviz docs to show some manual pages and some\ntiny sectioning. And this commit also updates to use the new theme.\nThere are still remaining weird indentations and some other tiny\nformatting bugs. However, we can fix them in following patches.\n\nChange-Id: I1ab055efb9bc5653f98be165cd2be3ac9cc5cd27\n'}]",470825,6fb81ff38a352e84821d410fe1adbb587a4d5e52,5689,Masayuki Igawa,igawa,0,"Fix docs and update its theme
+
+This commit fixes the stackviz docs to show some manual pages and some
+tiny sectioning. And this commit also updates to use the new theme.
+There are still remaining weird indentations and some other tiny
+formatting bugs. However, we can fix them in following patches.
+
+Change-Id: I1ab055efb9bc5653f98be165cd2be3ac9cc5cd27
+","['doc/source/index.rst', 'doc/source/man/stackviz-export.rst', 'test-requirements.txt', 'doc/source/conf.py', 'doc/source/man/stackviz-front.rst']"
+openstack%2Fkolla~394150,openstack/kolla,master,I0b10769e3dcd33f22cfe503c79ad73301f3e8827,Install all python packages in global-requirements.txt file,ABANDONED,2016-11-06 05:04:27.000000000,2017-12-18 04:26:01.000000000,8,109,"[{'_account_id': 1390, 'name': 'Paul Bourke', 'email': 'pauldbourke@proton.me', 'username': 'pauldbourke'}, {'_account_id': 2834, 'name': 'Steven Dake', 'email': 'steven.dake@gmail.com', 'username': 'sdake'}, {'_account_id': 7488, 'name': 'Jeffrey Zhang', 'email': 'zhang.lei.fly@gmail.com', 'username': 'Jeffrey4l'}, {'_account_id': 16233, 'name': 'Mauricio Lima', 'email': 'mauriciolimab@gmail.com', 'username': 'limamauricio'}]",,1,"[{'number': 5, 'created': '2017-01-21 08:59:03.000000000', 'files': ['docker/openstack-base/Dockerfile.j2', 'tools/gate_run.sh'], 'message': 'Install all python packages in global-requirements.txt file\n\nInstall all python packages to reduce the total size of images.\n\nChange-Id: I0b10769e3dcd33f22cfe503c79ad73301f3e8827\n'}]",394150,36ffd1f990f2c56dfdaac1bb164e6c20296822cb,7488,Jeffrey Zhang,Jeffrey4l,0,"Install all python packages in global-requirements.txt file
+
+Install all python packages to reduce the total size of images.
+
+Change-Id: I0b10769e3dcd33f22cfe503c79ad73301f3e8827
+","['docker/openstack-base/Dockerfile.j2', 'tools/gate_run.sh']"
+openstack%2Fswift~517224,openstack/swift,master,I74a8a4e0f8b1064563db17063d28b6ac03ce4978,Follow the patch 371150,ABANDONED,2017-11-02 09:26:52.000000000,2017-12-18 04:20:55.000000000,13,0,"[{'_account_id': 4608, 'name': 'Kota Tsuyuzaki', 'email': 'bloodeagle40234@gmail.com', 'username': 'tsuyuzaki-kota'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 2, 'created': '2017-11-02 13:04:24.000000000', 'files': ['test/unit/proxy/controllers/test_obj.py'], 'message': 'Follow the patch 371150\n\nAdd a test for https://review.openstack.org/#/c/371150/\n\nThis is working in progress.\n\nChange-Id: I74a8a4e0f8b1064563db17063d28b6ac03ce4978\n'}]",517224,db93ea1331ec69e1280a688599d1ccddb4e6500c,4608,Kota Tsuyuzaki,tsuyuzaki-kota,0,"Follow the patch 371150
+
+Add a test for https://review.openstack.org/#/c/371150/
+
+This is working in progress.
+
+Change-Id: I74a8a4e0f8b1064563db17063d28b6ac03ce4978
+",['test/unit/proxy/controllers/test_obj.py']
+openstack%2Fopenstack-helm-infra~524930,openstack/openstack-helm-infra,master,Icb06a6570683b7accebc142f75901530c6359180,Update Prometheus to version 2.0,MERGED,2017-12-02 23:43:33.000000000,2017-12-18 04:19:21.000000000,380,501,"[{'_account_id': 17591, 'name': 'Steve Wilkerson', 'email': 'wilkers.steve@gmail.com', 'username': 'srwilkers'}, {'_account_id': 20466, 'name': 'Tin Lam', 'email': 'tin@lam.wtf', 'username': 'tinlam'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 23928, 'name': 'Pete Birley', 'email': 'petebirley@gmail.com', 'username': 'portdirect'}]",,0,"[{'number': 19, 'created': '2017-12-17 20:47:09.000000000', 'files': ['alertmanager/values.yaml', 'prometheus/templates/bin/_prometheus.sh.tpl', 'prometheus/values.yaml'], 'message': 'Update Prometheus to version 2.0\n\nUpdates the Prometheus chart to use version 2.0 by default. This\nintroduces a change in the rules format (to yaml), and changes the\nflags required for the storage layer.\n\nChange-Id: Icb06a6570683b7accebc142f75901530c6359180\n'}]",524930,ca6322da876ec187fa2268cf43e20a8b639de91f,17591,Steve Wilkerson,srwilkers,0,"Update Prometheus to version 2.0
+
+Updates the Prometheus chart to use version 2.0 by default. This
+introduces a change in the rules format (to yaml), and changes the
+flags required for the storage layer.
+
+Change-Id: Icb06a6570683b7accebc142f75901530c6359180
+","['alertmanager/values.yaml', 'prometheus/templates/bin/_prometheus.sh.tpl', 'prometheus/values.yaml']"
+openstack%2Fheat~506525,openstack/heat,master,Ib16328b1b69cd9a10f41fbc0dce1c2b0e6d7e664,Add tempest ids for functional and scenario tests,ABANDONED,2017-09-22 05:08:54.000000000,2017-12-18 04:05:33.000000000,243,0,"[{'_account_id': 3, 'name': 'Jenkins', 'username': 'jenkins'}, {'_account_id': 12404, 'name': 'Rico Lin', 'email': 'ricolin@ricolky.com', 'username': 'rico.lin'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 4, 'created': '2017-12-18 03:56:18.000000000', 'files': ['heat_integrationtests/functional/test_aws_stack.py', 'heat_integrationtests/functional/test_immutable_parameters.py', 'heat_integrationtests/functional/test_os_wait_condition.py', 'heat_integrationtests/functional/test_heat_autoscaling.py', 'heat_integrationtests/functional/test_instance_group.py', 'heat_integrationtests/functional/test_cancel_update.py', 'heat_integrationtests/functional/test_create_update_neutron_trunk.py', 'heat_integrationtests/functional/test_update_restricted.py', 'heat_integrationtests/functional/test_templates.py', 'heat_integrationtests/functional/test_conditional_exposure.py', 'heat_integrationtests/functional/test_encrypted_parameter.py', 'heat_integrationtests/functional/test_preview_update.py', 'heat_integrationtests/scenario/test_server_cfn_init.py', 'heat_integrationtests/functional/test_translation.py', 'heat_integrationtests/scenario/test_server_software_config.py', 'heat_integrationtests/functional/test_nova_server_networks.py', 'heat_integrationtests/functional/test_create_update.py', 'heat_integrationtests/functional/test_default_parameters.py', 'heat_integrationtests/functional/test_template_resource.py', 'heat_integrationtests/scenario/test_volumes.py', 'heat_integrationtests/functional/test_create_update_neutron_port.py', 'heat_integrationtests/functional/test_create_update_neutron_subnet.py', 'heat_integrationtests/functional/test_admin_actions.py', 'heat_integrationtests/functional/test_resource_group.py', 'heat_integrationtests/functional/test_snapshot_restore.py', 'heat_integrationtests/functional/test_notifications.py', 'heat_integrationtests/functional/test_purge.py', 'heat_integrationtests/functional/test_validation.py', 'heat_integrationtests/functional/test_remote_stack.py', 'heat_integrationtests/functional/test_encryption_vol_type.py', 'heat_integrationtests/functional/test_swiftsignal_update.py', 'heat_integrationtests/functional/test_software_deployment_group.py', 'heat_integrationtests/functional/test_resource_chain.py', 'heat_integrationtests/functional/test_env_merge.py', 'heat_integrationtests/functional/test_autoscaling.py', 'heat_integrationtests/scenario/test_server_signal.py', 'heat_integrationtests/functional/test_delete.py', 'heat_integrationtests/functional/test_replace_deprecated.py', 'heat_integrationtests/functional/test_conditions.py', 'heat_integrationtests/functional/test_nested_get_attr.py'], 'message': 'Add tempest ids for functional and scenario tests\n\nThis patch add tempest ids for all functional and scenario tests\nin integration tests.\n\nDepends-On: I6d6e025f60867e5128704f54e5e793762f6c1b8a\nChange-Id: Ib16328b1b69cd9a10f41fbc0dce1c2b0e6d7e664\n'}]",506525,1efc9ffb5da331fc4df5b9bb2527f4eb9f06f67f,12404,Rico Lin,rico.lin,0,"Add tempest ids for functional and scenario tests
+
+This patch add tempest ids for all functional and scenario tests
+in integration tests.
+
+Depends-On: I6d6e025f60867e5128704f54e5e793762f6c1b8a
+Change-Id: Ib16328b1b69cd9a10f41fbc0dce1c2b0e6d7e664
+","['heat_integrationtests/functional/test_aws_stack.py', 'heat_integrationtests/functional/test_immutable_parameters.py', 'heat_integrationtests/functional/test_os_wait_condition.py', 'heat_integrationtests/functional/test_heat_autoscaling.py', 'heat_integrationtests/functional/test_instance_group.py', 'heat_integrationtests/functional/test_cancel_update.py', 'heat_integrationtests/functional/test_create_update_neutron_trunk.py', 'heat_integrationtests/functional/test_update_restricted.py', 'heat_integrationtests/functional/test_templates.py', 'heat_integrationtests/functional/test_conditional_exposure.py', 'heat_integrationtests/functional/test_encrypted_parameter.py', 'heat_integrationtests/functional/test_preview_update.py', 'heat_integrationtests/scenario/test_server_cfn_init.py', 'heat_integrationtests/functional/test_translation.py', 'heat_integrationtests/scenario/test_server_software_config.py', 'heat_integrationtests/functional/test_nova_server_networks.py', 'heat_integrationtests/functional/test_create_update.py', 'heat_integrationtests/functional/test_default_parameters.py', 'heat_integrationtests/functional/test_template_resource.py', 'heat_integrationtests/scenario/test_volumes.py', 'heat_integrationtests/functional/test_create_update_neutron_port.py', 'heat_integrationtests/functional/test_create_update_neutron_subnet.py', 'heat_integrationtests/functional/test_admin_actions.py', 'heat_integrationtests/functional/test_resource_group.py', 'heat_integrationtests/functional/test_snapshot_restore.py', 'heat_integrationtests/functional/test_notifications.py', 'heat_integrationtests/functional/test_purge.py', 'heat_integrationtests/functional/test_validation.py', 'heat_integrationtests/functional/test_remote_stack.py', 'heat_integrationtests/functional/test_encryption_vol_type.py', 'heat_integrationtests/functional/test_swiftsignal_update.py', 'heat_integrationtests/functional/test_software_deployment_group.py', 'heat_integrationtests/functional/test_resource_chain.py', 'heat_integrationtests/functional/test_env_merge.py', 'heat_integrationtests/functional/test_autoscaling.py', 'heat_integrationtests/scenario/test_server_signal.py', 'heat_integrationtests/functional/test_delete.py', 'heat_integrationtests/functional/test_replace_deprecated.py', 'heat_integrationtests/functional/test_conditions.py', 'heat_integrationtests/functional/test_nested_get_attr.py']"
+openstack%2Fpython-barbicanclient~505874,openstack/python-barbicanclient,stable/pike,Ibcbd0e6337025119d41241787ab965c5b3d0046d,Updated from global requirements,MERGED,2017-09-21 01:05:47.000000000,2017-12-18 03:56:59.000000000,1,1,"[{'_account_id': 21797, 'name': 'liujiong', 'display_name': 'Jeremy Liu', 'email': 'liujiong.cc@gmail.com', 'username': 'liujiong'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]","[{'rev_nbr': 11, 'author': '2017-10-05 00:09:03.000000000', 'date': '2017-10-05 00:09:03.000000000'}, {'rev_nbr': 13, 'author': '2017-10-05 09:21:34.000000000', 'date': '2017-10-05 09:21:34.000000000'}, {'rev_nbr': 13, 'author': '2017-10-09 03:26:44.000000000', 'date': '2017-10-09 03:26:44.000000000'}, {'rev_nbr': 17, 'author': '2017-10-11 06:53:40.000000000', 'date': '2017-10-11 06:53:40.000000000'}]",0,"[{'number': 27, 'created': '2017-11-15 01:49:56.000000000', 'files': ['test-requirements.txt'], 'message': 'Updated from global requirements\n\nChange-Id: Ibcbd0e6337025119d41241787ab965c5b3d0046d\n'}]",505874,6dcb1319611f97524f84b79a7ebd723e3ea5440e,11131,OpenStack Proposal Bot,proposal-bot,1,"Updated from global requirements
+
+Change-Id: Ibcbd0e6337025119d41241787ab965c5b3d0046d
+",['test-requirements.txt']
+openstack%2Fkolla-ansible~439468,openstack/kolla-ansible,master,I38661a0bc2163a7f72febd98b7ae6f51c5d45ad5,Enable heat-api proxy header parsing,MERGED,2017-03-01 09:00:51.000000000,2017-12-18 03:52:15.000000000,5,0,"[{'_account_id': 3, 'name': 'Jenkins', 'username': 'jenkins'}, {'_account_id': 1390, 'name': 'Paul Bourke', 'email': 'pauldbourke@proton.me', 'username': 'pauldbourke'}, {'_account_id': 19316, 'name': 'Eduardo Gonzalez', 'email': 'dabarren@gmail.com', 'username': 'egonzalez90'}, {'_account_id': 21927, 'name': 'bjorn lofdahl', 'email': 'bjorn.lofdahl@gmail.com', 'username': 'bjolo'}]",,0,"[{'number': 1, 'created': '2017-03-01 09:00:51.000000000', 'files': ['ansible/roles/heat/templates/heat.conf.j2'], 'message': 'Enable heat-api proxy header parsing\n\nheat-api kept redirecting clients to use http:// instead of https://\nwhen communicating with our https:// only loadbalancer\n\nPlease examine the logic for enabling it carefully, it\'s hard to know\nif it should be enabled or not, potenitially it could be a security\nrisk.\n\nBased on openstack-ansible-os_heat:\ncommit 4033a0f854cba6719c61812ef5b553e932a6c6c2\nAuthor: Kyle L. Henderson <kyleh@us.ibm.com>\n\n    Enable oslo_middleware proxy header parsing\n\n""Heat has moved to using oslo_middleware for the http proxy header\nparsing, however the default is to not parse the headers.  When\nthe external protocol differs from the internal protocol this\nparsing is required in order for heat to work properly since it\nwill return 302 redirects to the client during some operations\n(such as delete stack).\n\nAn example of this is when using haproxy with https configured\nfor the external protocol and http for the internal protocol.\nIf the oslo_middleware does not parse the headers, then any\n302 redirects would specify a url with http rather than\ncorrectly specifying https and the heat client would fail to\nconnect on the redirect url.""\n\nChange-Id: I38661a0bc2163a7f72febd98b7ae6f51c5d45ad5\n'}]",439468,63e5c444dda43958843f7729056a254708e92002,11221,Ian Kumlien,pomac,0,"Enable heat-api proxy header parsing
+
+heat-api kept redirecting clients to use http:// instead of https://
+when communicating with our https:// only loadbalancer
+
+Please examine the logic for enabling it carefully, it's hard to know
+if it should be enabled or not, potenitially it could be a security
+risk.
+
+Based on openstack-ansible-os_heat:
+commit 4033a0f854cba6719c61812ef5b553e932a6c6c2
+Author: Kyle L. Henderson <kyleh@us.ibm.com>
+
+    Enable oslo_middleware proxy header parsing
+
+""Heat has moved to using oslo_middleware for the http proxy header
+parsing, however the default is to not parse the headers.  When
+the external protocol differs from the internal protocol this
+parsing is required in order for heat to work properly since it
+will return 302 redirects to the client during some operations
+(such as delete stack).
+
+An example of this is when using haproxy with https configured
+for the external protocol and http for the internal protocol.
+If the oslo_middleware does not parse the headers, then any
+302 redirects would specify a url with http rather than
+correctly specifying https and the heat client would fail to
+connect on the redirect url.""
+
+Change-Id: I38661a0bc2163a7f72febd98b7ae6f51c5d45ad5
+",['ansible/roles/heat/templates/heat.conf.j2']
+openstack%2Fkarbor~528176,openstack/karbor,master,I1213d465ad89447ac61ba8f4ff1899152f0407d9,Add jsonschema validation for karbor triggers API,MERGED,2017-12-15 07:17:15.000000000,2017-12-18 03:49:39.000000000,96,11,"[{'_account_id': 17151, 'name': 'chenying', 'email': 'chenyingko@gmail.com', 'username': 'chenying'}, {'_account_id': 21224, 'name': 'jiaopengju', 'email': 'jiaopengju_yewu@cmss.chinamobile.com', 'username': 'jiaopengju'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 1, 'created': '2017-12-15 07:17:15.000000000', 'files': ['karbor/api/v1/triggers.py', 'karbor/tests/unit/api/v1/test_scheduled_operation.py', 'karbor/tests/unit/api/v1/test_triggers.py', 'karbor/api/schemas/triggers.py'], 'message': 'Add jsonschema validation for karbor triggers API\n\nChange-Id: I1213d465ad89447ac61ba8f4ff1899152f0407d9\nPartial-Implements: bp karbor-json-schema-validation\n'}]",528176,d75fba70b197f024d8a1f1ba9510477157dc1b78,17151,chenying,chenying,0,"Add jsonschema validation for karbor triggers API
+
+Change-Id: I1213d465ad89447ac61ba8f4ff1899152f0407d9
+Partial-Implements: bp karbor-json-schema-validation
+","['karbor/api/v1/triggers.py', 'karbor/tests/unit/api/v1/test_scheduled_operation.py', 'karbor/tests/unit/api/v1/test_triggers.py', 'karbor/api/schemas/triggers.py']"
+openstack%2Fqinling~527830,openstack/qinling,master,I0a6abc98534dc95af5b985b6b6b4c0883263a221,Introduce etcd to qinling,MERGED,2017-12-14 01:33:14.000000000,2017-12-18 03:48:56.000000000,396,563,"[{'_account_id': 6732, 'name': 'Lingxian Kong', 'email': 'anlin.kong@gmail.com', 'username': 'kong'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 7, 'created': '2017-12-18 03:15:14.000000000', 'files': ['qinling/db/sqlalchemy/migration/alembic_migrations/versions/001_pike.py', 'qinling/engine/service.py', 'qinling/api/controllers/v1/runtime.py', 'qinling/db/api.py', 'qinling/api/controllers/v1/root.py', 'qinling/db/sqlalchemy/sqlite_lock.py', 'qinling/engine/utils.py', 'requirements.txt', 'qinling/utils/etcd_util.py', 'runtimes/python2/server.py', 'qinling/db/sqlalchemy/models.py', 'qinling/tests/unit/api/controllers/v1/test_function.py', 'qinling/api/controllers/v1/function.py', 'qinling/orchestrator/kubernetes/manager.py', 'qinling/engine/default_engine.py', 'qinling/tests/unit/base.py', 'qinling/cmd/launch.py', 'qinling/services/periodics.py', 'qinling/config.py', 'qinling/db/base.py', 'qinling_tempest_plugin/tests/api/test_executions.py', 'qinling/tests/unit/api/controllers/v1/test_runtime.py', 'qinling/api/controllers/v1/resources.py', 'qinling/db/sqlalchemy/api.py', 'qinling/tests/unit/api/controllers/v1/test_function_worker.py'], 'message': 'Introduce etcd to qinling\n\n- Qinling is using etcd for distributed locking, especially for invoking\n  functions simultaneously.\n- Get rid of function service and function worker mapping table\n- Use etcd to store function service url and workers\n\nChange-Id: I0a6abc98534dc95af5b985b6b6b4c0883263a221\n'}]",527830,072605fa63a96301ef3f6ae4db3a247babfde9e6,6732,Lingxian Kong,kong,0,"Introduce etcd to qinling
+
+- Qinling is using etcd for distributed locking, especially for invoking
+  functions simultaneously.
+- Get rid of function service and function worker mapping table
+- Use etcd to store function service url and workers
+
+Change-Id: I0a6abc98534dc95af5b985b6b6b4c0883263a221
+","['qinling/db/sqlalchemy/migration/alembic_migrations/versions/001_pike.py', 'qinling/engine/service.py', 'qinling/api/controllers/v1/runtime.py', 'qinling/db/api.py', 'qinling/api/controllers/v1/root.py', 'qinling/db/sqlalchemy/sqlite_lock.py', 'qinling/engine/utils.py', 'requirements.txt', 'qinling/utils/etcd_util.py', 'runtimes/python2/server.py', 'qinling/db/sqlalchemy/models.py', 'qinling/tests/unit/api/controllers/v1/test_function.py', 'qinling/api/controllers/v1/function.py', 'qinling/orchestrator/kubernetes/manager.py', 'qinling/engine/default_engine.py', 'qinling/tests/unit/base.py', 'qinling/cmd/launch.py', 'qinling/services/periodics.py', 'qinling/config.py', 'qinling/db/base.py', 'qinling_tempest_plugin/tests/api/test_executions.py', 'qinling/tests/unit/api/controllers/v1/test_runtime.py', 'qinling/api/controllers/v1/resources.py', 'qinling/db/sqlalchemy/api.py', 'qinling/tests/unit/api/controllers/v1/test_function_worker.py']"
+openstack%2Fnetworking-odl~520387,openstack/networking-odl,master,Idf2a400b8016dde7d7d60c80bb34e73a6b71b1fb,Ignore failure of a resource sync,ABANDONED,2017-11-16 11:00:03.000000000,2017-12-18 03:45:54.000000000,17,5,"[{'_account_id': 333, 'name': 'Isaku Yamahata', 'email': 'isaku.yamahata@gmail.com', 'username': 'yamahata'}, {'_account_id': 13912, 'name': 'rajiv', 'email': 'thenakliman@gmail.com', 'username': 'rajiv.kumar'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 26507, 'name': 'Michel Peterson', 'email': 'michel@redhat.com', 'username': 'mpeterson'}]",,7,"[{'number': 1, 'created': '2017-11-16 11:00:03.000000000', 'files': ['networking_odl/tests/unit/journal/test_full_sync.py', 'networking_odl/journal/full_sync.py'], 'message': 'Ignore failure of a resource sync\n\nif there is some problem in sync of a resource then full sync stops\nat that point and does not sync remaining resources. This patch\nignores the failures and continue to sync other resources.\n\nChange-Id: Idf2a400b8016dde7d7d60c80bb34e73a6b71b1fb\n'}]",520387,d71d9476c2437f5df093256d2718979d8d95ec5f,13912,rajiv,rajiv.kumar,0,"Ignore failure of a resource sync
+
+if there is some problem in sync of a resource then full sync stops
+at that point and does not sync remaining resources. This patch
+ignores the failures and continue to sync other resources.
+
+Change-Id: Idf2a400b8016dde7d7d60c80bb34e73a6b71b1fb
+","['networking_odl/tests/unit/journal/test_full_sync.py', 'networking_odl/journal/full_sync.py']"
+openstack%2Fnetworking-odl~522138,openstack/networking-odl,master,Ibb73d206024a4063678229cf8d2db8d04fce84f9,Logs failure of journal record,ABANDONED,2017-11-22 06:59:58.000000000,2017-12-18 03:43:56.000000000,1,0,"[{'_account_id': 13912, 'name': 'rajiv', 'email': 'thenakliman@gmail.com', 'username': 'rajiv.kumar'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 26507, 'name': 'Michel Peterson', 'email': 'michel@redhat.com', 'username': 'mpeterson'}]",,3,"[{'number': 1, 'created': '2017-11-22 06:59:58.000000000', 'files': ['networking_odl/journal/journal.py'], 'message': 'Logs failure of journal record\n\nCurrently, if we have failure in recording of journal entry then\nnothing is logged, it makes debugging difficult with very generic\nmessage. This patch adds logging to make it easier to debug.\n\nChange-Id: Ibb73d206024a4063678229cf8d2db8d04fce84f9\n'}]",522138,94aaaa89f23034c0aeb8fb129b0ec8cfde489fa6,13912,rajiv,rajiv.kumar,0,"Logs failure of journal record
+
+Currently, if we have failure in recording of journal entry then
+nothing is logged, it makes debugging difficult with very generic
+message. This patch adds logging to make it easier to debug.
+
+Change-Id: Ibb73d206024a4063678229cf8d2db8d04fce84f9
+",['networking_odl/journal/journal.py']
+openstack%2Fnetworking-odl~518255,openstack/networking-odl,master,Ic3b7822567ec7b4e896f22bfdb8f1fc30236ed5b,[discussion] Moving journal sync timer use case to periodic task,ABANDONED,2017-11-07 07:00:33.000000000,2017-12-18 03:41:42.000000000,8,51,"[{'_account_id': 7921, 'name': 'Mike Kolesnik', 'email': 'mkolesni@redhat.com', 'username': 'mkolesni'}, {'_account_id': 13912, 'name': 'rajiv', 'email': 'thenakliman@gmail.com', 'username': 'rajiv.kumar'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 26507, 'name': 'Michel Peterson', 'email': 'michel@redhat.com', 'username': 'mpeterson'}]",,0,"[{'number': 1, 'created': '2017-11-07 07:00:33.000000000', 'files': ['networking_odl/journal/worker.py', 'networking_odl/journal/journal.py'], 'message': '[discussion] Moving journal sync timer use case to periodic task\n\nJust to give idea, after current proposal, code will look something\nlike this. Complete implementation can be done after agreement.\n\nIt includes db locking for sync, so it might have impact on\nperformance.\n\nIt introduces simiplicity in the code.\n\nChange-Id: Ic3b7822567ec7b4e896f22bfdb8f1fc30236ed5b\n'}]",518255,b64b4daf96cade6efe933880c3361da801f036a6,13912,rajiv,rajiv.kumar,0,"[discussion] Moving journal sync timer use case to periodic task
+
+Just to give idea, after current proposal, code will look something
+like this. Complete implementation can be done after agreement.
+
+It includes db locking for sync, so it might have impact on
+performance.
+
+It introduces simiplicity in the code.
+
+Change-Id: Ic3b7822567ec7b4e896f22bfdb8f1fc30236ed5b
+","['networking_odl/journal/worker.py', 'networking_odl/journal/journal.py']"
+openstack%2Fkolla-ansible~476298,openstack/kolla-ansible,master,I62512dc022426cc762ff603d8554e48651fa621f,"The notify ""Restart keystone containers"" is not correct",MERGED,2017-06-22 01:03:26.000000000,2017-12-18 03:33:20.000000000,2,1,"[{'_account_id': 3, 'name': 'Jenkins', 'username': 'jenkins'}, {'_account_id': 894, 'name': 'Juan J. Martínez', 'email': 'jjm@usebox.net', 'username': 'jjmartinez'}, {'_account_id': 8157, 'name': 'Bertrand LALLAU', 'email': 'bertrand.lallau@gmail.com', 'username': 'blallau'}, {'_account_id': 19316, 'name': 'Eduardo Gonzalez', 'email': 'dabarren@gmail.com', 'username': 'egonzalez90'}, {'_account_id': 23717, 'name': 'Surya Prakash Singh', 'email': 'singh.surya64mnnit@gmail.com', 'username': 'SuryaPrakash'}]",,1,"[{'number': 3, 'created': '2017-06-23 00:52:06.000000000', 'files': ['ansible/roles/keystone/tasks/config.yml'], 'message': 'The notify ""Restart keystone containers"" is not correct\n\nNo handler named ""Restart keystone containers"", and we should restart\nthe keystone and the keystone-fernet container according to the context\n\nCloses-Bug: #1699924\n\nChange-Id: I62512dc022426cc762ff603d8554e48651fa621f\n'}]",476298,77358dd920c1abab64d111496d94a77b9e5ca6c3,22037,蒋鹏程,jiangpch,0,"The notify ""Restart keystone containers"" is not correct
+
+No handler named ""Restart keystone containers"", and we should restart
+the keystone and the keystone-fernet container according to the context
+
+Closes-Bug: #1699924
+
+Change-Id: I62512dc022426cc762ff603d8554e48651fa621f
+",['ansible/roles/keystone/tasks/config.yml']
+openstack%2Fblazar~428067,openstack/blazar,master,I88f2a961d770d6deebd9af567d6407e677c102ae,Refactored blazar tempest plugin,MERGED,2017-02-02 09:57:50.000000000,2017-12-18 03:19:37.000000000,77,148,"[{'_account_id': 3, 'name': 'Jenkins', 'username': 'jenkins'}, {'_account_id': 8878, 'name': 'Masahito Muroi', 'email': 'masahito.muroi@linecorp.com', 'username': 'masa'}, {'_account_id': 12393, 'name': 'chandan kumar', 'display_name': 'Chandan Kumar', 'email': 'chkumar@redhat.com', 'username': 'chkumar246'}, {'_account_id': 13192, 'name': 'Souville', 'email': 'souvillebertrand@gmail.com', 'username': 'bertys'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 23840, 'name': 'Hiroaki Kobayashi', 'email': 'kobayashi.hiroaki@lab.ntt.co.jp', 'username': 'hiro-kobayashi'}]",,1,"[{'number': 12, 'created': '2017-12-15 06:38:31.000000000', 'files': ['blazar_tempest_plugin/plugin.py', 'blazar_tempest_plugin/tests/scenario/test_instance_reservation.py', 'blazar_tempest_plugin/tests/scenario/test_reservation_concurrency.py', 'contrib/tempest/tempest/cli/blazarclient.py', 'contrib/tempest/README.rst', 'contrib/tempest/tempest/cli/simple_read_only/test_resource_reservation.py', 'blazar_tempest_plugin/README.rst', 'blazar_tempest_plugin/tests/__init__.py', 'blazar_tempest_plugin/services/__init__.py', 'blazar_tempest_plugin/tests/scenario/manager_freeze.py', 'blazar_tempest_plugin/__init__.py', 'blazar_tempest_plugin/tests/scenario/test_host_reservation.py', 'blazar_tempest_plugin/services/reservation/reservation_client.py', 'blazar_tempest_plugin/tests/scenario/__init__.py', 'playbooks/legacy/blazar-devstack-dsvm/run.yaml', 'setup.cfg', 'blazar_tempest_plugin/config.py', 'blazar_tempest_plugin/services/reservation/__init__.py', 'blazar_tempest_plugin/tests/scenario/resource_reservation_scenario.py'], 'message': 'Refactored blazar tempest plugin\n\n* In order to complete the tempest plugin split goal, we need to\n  refactor the blazar tempest plugin so that we can easily consume.\n\n* use six.moves import range instead xrange to avoid flake8 error\n\nChange-Id: I88f2a961d770d6deebd9af567d6407e677c102ae\n'}]",428067,1f2e722e0471b69d7adceeb373beef6c010a98c7,8878,Masahito Muroi,masa,0,"Refactored blazar tempest plugin
+
+* In order to complete the tempest plugin split goal, we need to
+  refactor the blazar tempest plugin so that we can easily consume.
+
+* use six.moves import range instead xrange to avoid flake8 error
+
+Change-Id: I88f2a961d770d6deebd9af567d6407e677c102ae
+","['blazar_tempest_plugin/plugin.py', 'blazar_tempest_plugin/tests/scenario/test_instance_reservation.py', 'blazar_tempest_plugin/tests/scenario/test_reservation_concurrency.py', 'contrib/tempest/tempest/cli/blazarclient.py', 'contrib/tempest/README.rst', 'contrib/tempest/tempest/cli/simple_read_only/test_resource_reservation.py', 'blazar_tempest_plugin/README.rst', 'blazar_tempest_plugin/tests/__init__.py', 'blazar_tempest_plugin/services/__init__.py', 'blazar_tempest_plugin/tests/scenario/manager_freeze.py', 'blazar_tempest_plugin/__init__.py', 'blazar_tempest_plugin/tests/scenario/test_host_reservation.py', 'blazar_tempest_plugin/services/reservation/reservation_client.py', 'blazar_tempest_plugin/tests/scenario/__init__.py', 'playbooks/legacy/blazar-devstack-dsvm/run.yaml', 'setup.cfg', 'blazar_tempest_plugin/config.py', 'blazar_tempest_plugin/services/reservation/__init__.py', 'blazar_tempest_plugin/tests/scenario/resource_reservation_scenario.py']"
+openstack%2Fironic~474453,openstack/ironic,master,I838d7f14ea5b6e0ed7fdbd9e788564bf8e66d1d9,"Using assertFalse(A) instead of assertEqual(False, A)",ABANDONED,2017-06-15 05:58:38.000000000,2017-12-18 03:18:16.000000000,4,4,"[{'_account_id': 7711, 'name': 'Yuriy Zveryanskyy', 'email': 'yzveryanskyy@mirantis.com', 'username': 'yuriyz'}, {'_account_id': 10239, 'name': 'Dmitry Tantsur', 'email': 'dtantsur@protonmail.com', 'username': 'dtantsur'}, {'_account_id': 11076, 'name': 'Shivanand Tendulker', 'email': 'stendulker@gmail.com', 'username': 'stendulker'}, {'_account_id': 17998, 'name': 'UFCG OneView CI', 'email': 'ufcg-oneview-ci@lsd.ufcg.edu.br', 'username': 'ufcg-oneview-ci', 'tags': ['SERVICE_USER']}, {'_account_id': 19339, 'name': 'Dell EMC Ironic CI', 'email': 'openstack-ironic-ci@dell.com', 'username': 'openstack-ironic-ci'}]","[{'rev_nbr': 1, 'author': '2017-06-15 18:21:24.000000000', 'date': '2017-06-15 18:21:24.000000000'}, {'rev_nbr': 2, 'author': '2017-07-14 07:49:17.000000000', 'date': '2017-07-14 07:49:17.000000000'}, {'rev_nbr': 2, 'author': '2017-07-15 07:50:02.000000000', 'date': '2017-07-15 07:50:02.000000000'}]",1,"[{'number': 2, 'created': '2017-07-14 07:10:22.000000000', 'files': ['ironic/tests/unit/drivers/modules/drac/test_periodic_task.py', 'ironic/tests/unit/api/v1/test_portgroups.py', 'ironic/tests/unit/drivers/modules/test_deploy_utils.py'], 'message': 'Using assertFalse(A) instead of assertEqual(False, A)\n\nThis patch is to replace assertEqual(False, A) with assertFalse(A), which\nthe latter is more straightforward and easier to understand.\n\nChange-Id: I838d7f14ea5b6e0ed7fdbd9e788564bf8e66d1d9\n'}]",474453,86a59e2219978bb62e30a2045419c74eca17b22c,25571,Rajat Sharma,rajat29,0,"Using assertFalse(A) instead of assertEqual(False, A)
+
+This patch is to replace assertEqual(False, A) with assertFalse(A), which
+the latter is more straightforward and easier to understand.
+
+Change-Id: I838d7f14ea5b6e0ed7fdbd9e788564bf8e66d1d9
+","['ironic/tests/unit/drivers/modules/drac/test_periodic_task.py', 'ironic/tests/unit/api/v1/test_portgroups.py', 'ironic/tests/unit/drivers/modules/test_deploy_utils.py']"
+openstack%2Fceilometer~478732,openstack/ceilometer,master,Ia93e02a4b6667e7e9d689061df5d8331e884d794,Replace the usage of 'manager' with 'os_primary',ABANDONED,2017-06-29 05:00:12.000000000,2017-12-18 03:17:39.000000000,3,3,"[{'_account_id': 6537, 'name': 'gordon chung', 'email': 'gord@live.ca', 'username': 'chungg'}, {'_account_id': 11224, 'name': 'Swami Reddy', 'email': 'swamireddy@gmail.com', 'username': 'swamireddy'}, {'_account_id': 15843, 'name': 'Intel Hardware-Meters CI', 'email': 'ipmi-ci@intel.com', 'username': 'ipmici'}, {'_account_id': 25903, 'name': 'Vu Cong Tuan', 'email': 'tuanvc@vn.fujitsu.com', 'username': 'tuanvu'}, {'_account_id': 26159, 'name': 'xiexianbin', 'email': 'xiexianbin@yovole.com', 'username': 'xianbin'}]",,0,"[{'number': 1, 'created': '2017-06-29 05:00:12.000000000', 'files': ['ceilometer/tests/tempest/scenario/manager.py'], 'message': ""Replace the usage of 'manager' with 'os_primary'\n\nIn tempest, alias 'manager' has been moved to 'os_primary'\nin version Pike, and it will be removed in version Queens.\nThis patch is to replace the usage of 'manager' with 'os_primary'.\n\nFor other details, please check [1] and [2]\n[1] https://review.openstack.org/#/c/468036/\n[2] https://review.openstack.org/#/c/463484/\n\nChange-Id: Ia93e02a4b6667e7e9d689061df5d8331e884d794\n""}]",478732,8e231882c0bdda49460d885808e31178aadf56f6,25571,Rajat Sharma,rajat29,0,"Replace the usage of 'manager' with 'os_primary'
+
+In tempest, alias 'manager' has been moved to 'os_primary'
+in version Pike, and it will be removed in version Queens.
+This patch is to replace the usage of 'manager' with 'os_primary'.
+
+For other details, please check [1] and [2]
+[1] https://review.openstack.org/#/c/468036/
+[2] https://review.openstack.org/#/c/463484/
+
+Change-Id: Ia93e02a4b6667e7e9d689061df5d8331e884d794
+",['ceilometer/tests/tempest/scenario/manager.py']
+openstack%2Fdiskimage-builder~526583,openstack/diskimage-builder,master,I23e293b957cd4f008611656cf9166391b1b537a2,Check source-repository-* files for trailing newline,MERGED,2017-12-08 03:25:17.000000000,2017-12-18 03:17:04.000000000,9,0,"[{'_account_id': 7118, 'name': 'Ian Wienand', 'email': 'iwienand@redhat.com', 'username': 'iwienand'}, {'_account_id': 10118, 'name': 'IBM PowerKVM CI', 'email': 'kvmpower@linux.vnet.ibm.com', 'username': 'powerkvm', 'tags': ['SERVICE_USER']}, {'_account_id': 21741, 'name': 'Andreas Florath', 'email': 'andreas@florath.net', 'username': 'florath'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 23181, 'name': 'RDO Third Party CI', 'email': 'dmsimard+rdothirdparty@redhat.com', 'username': 'rdothirdparty', 'tags': ['SERVICE_USER']}]","[{'rev_nbr': 1, 'author': '2017-12-08 03:34:23.000000000', 'date': '2017-12-08 03:34:23.000000000'}, {'rev_nbr': 1, 'author': '2017-12-08 05:30:27.000000000', 'date': '2017-12-08 05:30:27.000000000'}, {'rev_nbr': 1, 'author': '2017-12-17 21:50:19.000000000', 'date': '2017-12-17 21:50:19.000000000'}, {'rev_nbr': 1, 'author': '2017-12-17 23:30:45.000000000', 'date': '2017-12-17 23:30:45.000000000'}, {'rev_nbr': 1, 'author': '2017-12-18 00:38:51.000000000', 'date': '2017-12-18 00:38:51.000000000'}]",0,"[{'number': 1, 'created': '2017-12-08 03:25:17.000000000', 'files': ['bin/dib-lint'], 'message': ""Check source-repository-* files for trailing newline\n\nBecause we read this in via a bash loop, without a trailing newline we\ncan hit one of the oldest bash gotcha tricks and end up skipping the\nfinal line (or only line, if there's only one) when the description\nfiles don't have trailing newlines.  Add a check.\n\nChange-Id: I23e293b957cd4f008611656cf9166391b1b537a2\n""}]",526583,55537519e51de064e78795d260e1fed1af1a352a,7118,Ian Wienand,iwienand,0,"Check source-repository-* files for trailing newline
+
+Because we read this in via a bash loop, without a trailing newline we
+can hit one of the oldest bash gotcha tricks and end up skipping the
+final line (or only line, if there's only one) when the description
+files don't have trailing newlines.  Add a check.
+
+Change-Id: I23e293b957cd4f008611656cf9166391b1b537a2
+",['bin/dib-lint']
+openstack%2Fblazar~528394,openstack/blazar,master,I77003768a793031433ef13b6d5f7237cb83b1915,Updated from global requirements,MERGED,2017-12-15 21:22:21.000000000,2017-12-18 03:13:25.000000000,1,1,"[{'_account_id': 15197, 'name': 'Pierre Riteau', 'email': 'pierre@stackhpc.com', 'username': 'priteau', 'status': 'StackHPC'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 23840, 'name': 'Hiroaki Kobayashi', 'email': 'kobayashi.hiroaki@lab.ntt.co.jp', 'username': 'hiro-kobayashi'}]",,0,"[{'number': 1, 'created': '2017-12-15 21:22:21.000000000', 'files': ['requirements.txt'], 'message': 'Updated from global requirements\n\nChange-Id: I77003768a793031433ef13b6d5f7237cb83b1915\n'}]",528394,b93cc9ba4b2aa599529a3a2989ad756b03e6f5cc,11131,OpenStack Proposal Bot,proposal-bot,1,"Updated from global requirements
+
+Change-Id: I77003768a793031433ef13b6d5f7237cb83b1915
+",['requirements.txt']
+openstack%2Fmolteniron~438980,openstack/molteniron,master,If68d335493f37e33d72a0ded1d3c05efa9795ca1,Add a culling thread to molteniron,ABANDONED,2017-02-28 14:39:43.000000000,2017-12-18 03:08:46.000000000,239,12,"[{'_account_id': 5660, 'name': 'Kurt Taylor', 'email': 'kurt.r.taylor@gmail.com', 'username': 'krtaylor'}, {'_account_id': 11929, 'name': 'Michael Turek', 'email': 'mjturek@linux.vnet.ibm.com', 'username': 'mjturek'}, {'_account_id': 18242, 'name': 'Mark Hamzy', 'email': 'hamzy@us.ibm.com', 'username': 'hamzy'}]",,7,"[{'number': 3, 'created': '2017-03-03 22:26:04.000000000', 'files': ['molteniron/molteniron.py', 'molteniron/moltenirond-culler', 'molteniron/moltenirond.py', 'README.rst', 'setup.py'], 'message': 'Add a culling thread to molteniron\n\nThe culling thread will sleep for --polling-seconds and deallocate\nnodes older than maxTime defined in conf.yaml.\n\nChange-Id: If68d335493f37e33d72a0ded1d3c05efa9795ca1\nCloses-Bug: 1639960\n'}]",438980,130a89c58387c701ffb207374d008e7c7a766de4,18242,Mark Hamzy,hamzy,0,"Add a culling thread to molteniron
+
+The culling thread will sleep for --polling-seconds and deallocate
+nodes older than maxTime defined in conf.yaml.
+
+Change-Id: If68d335493f37e33d72a0ded1d3c05efa9795ca1
+Closes-Bug: 1639960
+","['molteniron/molteniron.py', 'molteniron/moltenirond-culler', 'molteniron/moltenirond.py', 'README.rst', 'setup.py']"
+openstack%2Fmagnum~390464,openstack/magnum,master,I746848578982e523c89c659a356eca6752d6bb37,add a ft test for cinder volume,ABANDONED,2016-10-25 07:48:25.000000000,2017-12-18 03:05:30.000000000,24,0,"[{'_account_id': 668, 'name': 'Adrian Otto', 'email': 'aotto@aotto.com', 'username': 'aotto'}, {'_account_id': 10206, 'name': 'Madhuri Kumari', 'email': 'madhuri.kumari@intel.com', 'username': 'Madhuri'}, {'_account_id': 13861, 'name': 'yatin', 'email': 'ykarel@redhat.com', 'username': 'yatinkarel'}, {'_account_id': 23365, 'name': 'feng.shengqin', 'email': 'feng.shengqin@zte.com.cn', 'username': 'FengShengqin'}, {'_account_id': 23419, 'name': 'guanzuoyu', 'email': 'guanzuoyudev@gmail.com', 'username': 'guanzuoyu'}]",,7,"[{'number': 5, 'created': '2016-12-16 06:47:26.000000000', 'files': ['magnum/tests/functional/python_client_base.py'], 'message': 'add a ft test for cinder volume\n\nA ft test for the function of using cinder volume and coe is k8s\n\nImplements: blueprint k8s-use-cinder-volume-function-test\n\nChange-Id: I746848578982e523c89c659a356eca6752d6bb37'}]",390464,4bab9cef063d1c391b40358f9e2b6e3e567e86f0,23419,guanzuoyu,guanzuoyu,0,"add a ft test for cinder volume
+
+A ft test for the function of using cinder volume and coe is k8s
+
+Implements: blueprint k8s-use-cinder-volume-function-test
+
+Change-Id: I746848578982e523c89c659a356eca6752d6bb37",['magnum/tests/functional/python_client_base.py']
+openstack%2Fproject-config~528589,openstack/project-config,master,Ib65ecf5c56c131717431eb76c8f9724a1a1c4853,Add myself to accessbot,MERGED,2017-12-17 23:16:47.000000000,2017-12-18 03:01:05.000000000,3,2,"[{'_account_id': 5263, 'name': 'Jeremy Stanley', 'display_name': 'fungi', 'email': 'fungi@yuggoth.org', 'username': 'fungi', 'status': 'missing, presumed fed'}, {'_account_id': 9061, 'name': 'David Moreau Simard', 'email': 'moi@dmsimard.com', 'username': 'dmsimard'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 25632, 'name': 'Zhaokun Fu', 'email': 'fuzk@inspur.com', 'username': 'fuzk'}]",,0,"[{'number': 1, 'created': '2017-12-17 23:16:47.000000000', 'files': ['accessbot/channels.yaml'], 'message': ""Add myself to accessbot\n\nGiven tz's, sometimes it might be handy for me to be able to kick for\noccasional spam etc in irc.  Also sort alphabetically just because\nthat seems like the way it was.\n\nChange-Id: Ib65ecf5c56c131717431eb76c8f9724a1a1c4853\n""}]",528589,f2411a209078ecd614269b7143343dde40deb648,7118,Ian Wienand,iwienand,0,"Add myself to accessbot
+
+Given tz's, sometimes it might be handy for me to be able to kick for
+occasional spam etc in irc.  Also sort alphabetically just because
+that seems like the way it was.
+
+Change-Id: Ib65ecf5c56c131717431eb76c8f9724a1a1c4853
+",['accessbot/channels.yaml']
+openstack%2Fpython-tripleoclient~501935,openstack/python-tripleoclient,master,I01837a9daf6f119292b5a2ffc361506925423f11,pm_user is optional for pxe_ipmitool nodes,ABANDONED,2017-09-08 03:27:44.000000000,2017-12-18 02:50:53.000000000,41,10,"[{'_account_id': 3, 'name': 'Jenkins', 'username': 'jenkins'}, {'_account_id': 10239, 'name': 'Dmitry Tantsur', 'email': 'dtantsur@protonmail.com', 'username': 'dtantsur'}, {'_account_id': 12898, 'name': 'Tony Breeds', 'email': 'tony@bakeyournoodle.com', 'username': 'tonyb'}]",,5,"[{'number': 2, 'created': '2017-09-08 03:31:31.000000000', 'files': ['tripleoclient/tests/v1/baremetal/test_baremetal.py', 'tripleoclient/v1/baremetal.py'], 'message': 'pm_user is optional for pxe_ipmitool nodes\n\nBlueprint: multiarch-support\nRelated-Bug: 1715787\nChange-Id: I01837a9daf6f119292b5a2ffc361506925423f11\n'}]",501935,362873966a1f8758612deacbef0cbddc937f11c1,12898,Tony Breeds,tonyb,0,"pm_user is optional for pxe_ipmitool nodes
+
+Blueprint: multiarch-support
+Related-Bug: 1715787
+Change-Id: I01837a9daf6f119292b5a2ffc361506925423f11
+","['tripleoclient/tests/v1/baremetal/test_baremetal.py', 'tripleoclient/v1/baremetal.py']"
+openstack%2Fpython-qinlingclient~528596,openstack/python-qinlingclient,master,I075141f0a2323f7863f1bf40be937d9f5f6dc46a,Delete all executions for function,MERGED,2017-12-18 01:49:44.000000000,2017-12-18 02:46:48.000000000,16,5,"[{'_account_id': 6732, 'name': 'Lingxian Kong', 'email': 'anlin.kong@gmail.com', 'username': 'kong'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 1, 'created': '2017-12-18 01:49:44.000000000', 'files': ['qinlingclient/osc/v1/function_execution.py'], 'message': 'Delete all executions for function\n\nSupport to delete executions of one or more functions in CLI.\n\nChange-Id: I075141f0a2323f7863f1bf40be937d9f5f6dc46a\n'}]",528596,1b8e6407aee12dca1985bb2b05cf90ae51ba213f,6732,Lingxian Kong,kong,0,"Delete all executions for function
+
+Support to delete executions of one or more functions in CLI.
+
+Change-Id: I075141f0a2323f7863f1bf40be937d9f5f6dc46a
+",['qinlingclient/osc/v1/function_execution.py']
+openstack%2Fkolla-ansible~479465,openstack/kolla-ansible,master,If84927d6df31391ebd53fe40126ee6d6faaeb10d,Use openvswitch firewall instead of iptables hyper driver,ABANDONED,2017-07-01 06:12:23.000000000,2017-12-18 02:46:41.000000000,9,2,"[{'_account_id': 7488, 'name': 'Jeffrey Zhang', 'email': 'zhang.lei.fly@gmail.com', 'username': 'Jeffrey4l'}, {'_account_id': 8157, 'name': 'Bertrand LALLAU', 'email': 'bertrand.lallau@gmail.com', 'username': 'blallau'}, {'_account_id': 19316, 'name': 'Eduardo Gonzalez', 'email': 'dabarren@gmail.com', 'username': 'egonzalez90'}, {'_account_id': 25945, 'name': 'Huan Peng', 'email': 'penghuan@gohighsec.com', 'username': 'penghuan'}]",,1,"[{'number': 2, 'created': '2017-07-12 09:32:22.000000000', 'files': ['ansible/roles/neutron/templates/ml2_conf.ini.j2', 'releasenotes/notes/move-to-openvswitch-firewall-f9d6fdf9e37e0c16.yaml'], 'message': 'Use openvswitch firewall instead of iptables hyper driver\n\n* use openvswitch base firewall when using openvswitch driver\n* use short name for firewall_driver option\n\nChange-Id: If84927d6df31391ebd53fe40126ee6d6faaeb10d\nCloses-Bug: #1701779\n'}]",479465,9ecfe5ab4c88c31af721998a36e7e5af300dd51f,7488,Jeffrey Zhang,Jeffrey4l,0,"Use openvswitch firewall instead of iptables hyper driver
+
+* use openvswitch base firewall when using openvswitch driver
+* use short name for firewall_driver option
+
+Change-Id: If84927d6df31391ebd53fe40126ee6d6faaeb10d
+Closes-Bug: #1701779
+","['ansible/roles/neutron/templates/ml2_conf.ini.j2', 'releasenotes/notes/move-to-openvswitch-firewall-f9d6fdf9e37e0c16.yaml']"
+openstack%2Fkolla-kubernetes~522738,openstack/kolla-kubernetes,master,Ief6501425bbea4b9128154b5a1193b0a2c4a6dd8,Add the checking for nova-libvirt start,ABANDONED,2017-11-24 07:52:53.000000000,2017-12-18 02:11:57.000000000,2,0,"[{'_account_id': 22076, 'name': 'Kevin Zhao', 'email': 'kevin.zhao@linaro.org', 'username': 'KevinZhao'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 24043, 'name': 'Rich Wellum', 'username': 'rwellum', 'inactive': True}, {'_account_id': 26553, 'name': 'Long Zhang', 'email': 'zhanglong@gohighsec.com', 'username': 'josie.zhang.long'}]",,3,"[{'number': 4, 'created': '2017-11-27 08:40:51.000000000', 'files': ['helm/microservice/nova-libvirt-daemonset/templates/nova-libvirt.yaml'], 'message': 'Add the checking for nova-libvirt start\n\nIf use ceph as the backend, user need to copy the secrets\nto the /etc/libvirt. If not use the ceph backend, this process\nwill not occur. So add the checking here.\nThe fix just solve 1 issues when booting nova-libvirt. Will need\nmore to fix the libvirtd could not start issue as following.\n\nPartial-Bug: #1733806\n\nChange-Id: Ief6501425bbea4b9128154b5a1193b0a2c4a6dd8\nSigned-off-by: Kevin Zhao <kevin.zhao@arm.com>\n'}]",522738,7cbd62acbf92d03327fa047335d5367dcc2a07af,22076,Kevin Zhao,KevinZhao,0,"Add the checking for nova-libvirt start
+
+If use ceph as the backend, user need to copy the secrets
+to the /etc/libvirt. If not use the ceph backend, this process
+will not occur. So add the checking here.
+The fix just solve 1 issues when booting nova-libvirt. Will need
+more to fix the libvirtd could not start issue as following.
+
+Partial-Bug: #1733806
+
+Change-Id: Ief6501425bbea4b9128154b5a1193b0a2c4a6dd8
+Signed-off-by: Kevin Zhao <kevin.zhao@arm.com>
+",['helm/microservice/nova-libvirt-daemonset/templates/nova-libvirt.yaml']
+openstack%2Fkarbor~525013,openstack/karbor,master,I0dfb57c925b305e770e513586a1a1dea0df354f3,Fix releasenotes build,MERGED,2017-12-03 22:47:02.000000000,2017-12-18 02:04:30.000000000,0,3,"[{'_account_id': 2023, 'name': 'Saggi Mizrahi', 'email': 'ficoos+osreview@gmail.com', 'username': 'ficoos'}, {'_account_id': 13070, 'name': 'Eran Gampel', 'email': 'eran@gampel.net', 'username': 'Gampel'}, {'_account_id': 17151, 'name': 'chenying', 'email': 'chenyingko@gmail.com', 'username': 'chenying'}, {'_account_id': 19346, 'name': 'yinwei', 'email': 'yinweiishere@icloud.com', 'username': 'yinwei'}, {'_account_id': 21224, 'name': 'jiaopengju', 'email': 'jiaopengju_yewu@cmss.chinamobile.com', 'username': 'jiaopengju'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 1, 'created': '2017-12-03 22:47:02.000000000', 'files': ['releasenotes/source/conf.py'], 'message': 'Fix releasenotes build\n\nChange I8ff60cc3793aea723a77d1b47a0f68c6c5c6ec62 left a broken\nline in the tree such that releasenotes did not build anymore if karbor\nwas not installed, remove it.\n\nChange-Id: I0dfb57c925b305e770e513586a1a1dea0df354f3\n'}]",525013,209e700ea4b2084c70197c616ff364548b46b8f0,6547,Andreas Jaeger,jaegerandi,0,"Fix releasenotes build
+
+Change I8ff60cc3793aea723a77d1b47a0f68c6c5c6ec62 left a broken
+line in the tree such that releasenotes did not build anymore if karbor
+was not installed, remove it.
+
+Change-Id: I0dfb57c925b305e770e513586a1a1dea0df354f3
+",['releasenotes/source/conf.py']
+openstack%2Fkeystone~526262,openstack/keystone,master,I4ef256da9843be6f4204dc85a009e38cc60c35e3,Remove useless function,ABANDONED,2017-12-07 03:50:51.000000000,2017-12-18 01:42:33.000000000,3,43,"[{'_account_id': 2218, 'name': 'Adam Young', 'email': 'adam@younglogic.com', 'username': 'ayoung'}, {'_account_id': 5046, 'name': 'Lance Bragstad', 'email': 'lbragstad@redhat.com', 'username': 'ldbragst'}, {'_account_id': 13063, 'name': 'WEI CHEN', 'email': 'dave.jungler@gmail.com', 'username': 'wei.d.chen'}, {'_account_id': 15054, 'name': 'wangxiyuan', 'email': 'wangxiyuan1007@gmail.com', 'username': 'wangxiyuan'}, {'_account_id': 21420, 'name': 'Gage Hugo', 'email': 'gagehugo@gmail.com', 'username': 'ghugo'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 23659, 'name': 'Jaewoo Park', 'email': 'jaewoopark91@gmail.com', 'username': 'aselius'}]",,5,"[{'number': 7, 'created': '2017-12-15 03:57:58.000000000', 'files': ['keystone/token/providers/base.py', 'keystone/token/providers/common.py', 'keystone/tests/unit/test_token_provider.py', 'releasenotes/notes/removed-as-of-queens-94c04e88c08f89aa.yaml'], 'message': 'Remove useless function\n\n""get_token_version"" is useless now and is called nowhere.\n\nChange-Id: I4ef256da9843be6f4204dc85a009e38cc60c35e3\nbp: removed-as-of-queens\n'}]",526262,552415c12558e52da88ade82dee53fbd14ae4abb,15054,wangxiyuan,wangxiyuan,0,"Remove useless function
+
+""get_token_version"" is useless now and is called nowhere.
+
+Change-Id: I4ef256da9843be6f4204dc85a009e38cc60c35e3
+bp: removed-as-of-queens
+","['keystone/token/providers/base.py', 'keystone/token/providers/common.py', 'keystone/tests/unit/test_token_provider.py', 'releasenotes/notes/removed-as-of-queens-94c04e88c08f89aa.yaml']"
+openstack%2Ftricircle~528552,openstack/tricircle,master,Iab3d1160bc4ef32ff19f68333ff49f2c3b3e0293,[Urgent] Fix unit test error,MERGED,2017-12-17 13:08:35.000000000,2017-12-18 01:25:21.000000000,56,23,"[{'_account_id': 11819, 'name': 'Chaoyi Huang', 'email': 'joehuang@huawei.com', 'username': 'joehuang'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 2, 'created': '2017-12-17 14:19:32.000000000', 'files': ['tricircle/tests/unit/network/test_central_plugin.py', 'tricircle/network/central_plugin.py'], 'message': '[Urgent] Fix unit test error\n\n1. What is the problem\nUnit tests fail due to database operation changes in neutron.\n\n2. What is the solution for the problem\nModify unit tests to adapt the change.\n\n3. What features need to be implemented to the Tricircle to\nrealize the solution\nN/A\n\nChange-Id: Iab3d1160bc4ef32ff19f68333ff49f2c3b3e0293\n'}]",528552,61087e1649fd188a01da9b886f9348be0a33bd23,12076,Zhiyuan Cai,zhiyuan_cai,0,"[Urgent] Fix unit test error
+
+1. What is the problem
+Unit tests fail due to database operation changes in neutron.
+
+2. What is the solution for the problem
+Modify unit tests to adapt the change.
+
+3. What features need to be implemented to the Tricircle to
+realize the solution
+N/A
+
+Change-Id: Iab3d1160bc4ef32ff19f68333ff49f2c3b3e0293
+","['tricircle/tests/unit/network/test_central_plugin.py', 'tricircle/network/central_plugin.py']"
+openstack%2Fwatcher~528434,openstack/watcher,master,I0af2c9fd266f925af5e3e8731b37a00dab91d6a8,Updated from global requirements,MERGED,2017-12-15 22:24:19.000000000,2017-12-18 01:21:59.000000000,1,1,"[{'_account_id': 19457, 'name': 'aditi sharma', 'email': 'adi.sky17@gmail.com', 'username': 'aditi'}, {'_account_id': 21692, 'name': 'licanwei', 'email': 'li.canwei2@zte.com.cn', 'username': 'licanwei'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 1, 'created': '2017-12-15 22:24:19.000000000', 'files': ['requirements.txt'], 'message': 'Updated from global requirements\n\nChange-Id: I0af2c9fd266f925af5e3e8731b37a00dab91d6a8\n'}]",528434,9ccd17e40b4ae038413e6e5ab98914a1cd7d0630,11131,OpenStack Proposal Bot,proposal-bot,1,"Updated from global requirements
+
+Change-Id: I0af2c9fd266f925af5e3e8731b37a00dab91d6a8
+",['requirements.txt']
+openstack%2Fpython-manilaclient~524829,openstack/python-manilaclient,master,Ib9e007b9eeae5f2079dd682df0c7ef2294961f4f,Avoid tox_install.sh for constraints support,MERGED,2017-12-02 08:29:18.000000000,2017-12-18 00:11:14.000000000,4,34,"[{'_account_id': 6491, 'name': 'xing-yang', 'email': 'xingyang105@gmail.com', 'username': 'xing-yang'}, {'_account_id': 9003, 'name': 'Tom Barron', 'email': 'tpb@dyncloud.net', 'username': 'tbarron'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 24441, 'name': 'Cuong Nguyen', 'email': 'cuongnv@vn.fujitsu.com', 'username': 'cuongnv'}]",,0,"[{'number': 2, 'created': '2017-12-02 16:56:06.000000000', 'files': ['tools/tox_install.sh', 'tox.ini'], 'message': 'Avoid tox_install.sh for constraints support\n\nWe do not need tox_install.sh, pip can handle constraints itself\nand install the project correctly. Thus update tox.ini and remove\nthe now obsolete tools/tox_install.sh file.\n\nThis follows https://review.openstack.org/#/c/508061 to remove\ntools/tox_install.sh.\n\nChange-Id: Ib9e007b9eeae5f2079dd682df0c7ef2294961f4f\n'}]",524829,3b5e6bc24fa1674cb7269ee21ba1f617df6b9357,6547,Andreas Jaeger,jaegerandi,0,"Avoid tox_install.sh for constraints support
+
+We do not need tox_install.sh, pip can handle constraints itself
+and install the project correctly. Thus update tox.ini and remove
+the now obsolete tools/tox_install.sh file.
+
+This follows https://review.openstack.org/#/c/508061 to remove
+tools/tox_install.sh.
+
+Change-Id: Ib9e007b9eeae5f2079dd682df0c7ef2294961f4f
+","['tools/tox_install.sh', 'tox.ini']"
+openstack%2Fopenstack-helm-infra~528561,openstack/openstack-helm-infra,master,I2a6a28832c0b1beedeb3e280572b3717628f7b88,Elasticsearch: Move default storage access-mode to ReadWriteOnce,MERGED,2017-12-17 14:06:50.000000000,2017-12-17 23:56:25.000000000,1,1,"[{'_account_id': 17591, 'name': 'Steve Wilkerson', 'email': 'wilkers.steve@gmail.com', 'username': 'srwilkers'}, {'_account_id': 17966, 'name': 'Steven Wilkerson', 'email': 'srwilkers@outlook.com', 'username': 'srwilker'}, {'_account_id': 20466, 'name': 'Tin Lam', 'email': 'tin@lam.wtf', 'username': 'tinlam'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 22477, 'name': 'Matt McEuen', 'email': 'matt.mceuen@att.com', 'username': 'mattmceuen'}, {'_account_id': 23928, 'name': 'Pete Birley', 'email': 'petebirley@gmail.com', 'username': 'portdirect'}]",,0,"[{'number': 4, 'created': '2017-12-17 21:34:10.000000000', 'files': ['elasticsearch/values.yaml'], 'message': 'Elasticsearch: Move default storage access-mode to ReadWriteOnce\n\nThis PS moves the default storage access-mode to ReadWriteOnce, as\nthe PVC is created inline with the statefulset. So ReadWriteMany will\nhave no effect, as a volume is created per pod.\n\nChange-Id: I2a6a28832c0b1beedeb3e280572b3717628f7b88\n'}]",528561,6e5fe71d9c541e8901fb40cdff898775abe64310,23928,Pete Birley,portdirect,0,"Elasticsearch: Move default storage access-mode to ReadWriteOnce
+
+This PS moves the default storage access-mode to ReadWriteOnce, as
+the PVC is created inline with the statefulset. So ReadWriteMany will
+have no effect, as a volume is created per pod.
+
+Change-Id: I2a6a28832c0b1beedeb3e280572b3717628f7b88
+",['elasticsearch/values.yaml']
+openstack%2Fopenstack-helm-infra~528590,openstack/openstack-helm-infra,master,I751c497ce471a1df49dfd9e300bd058779be3183,Add role and rolebinding descriptions to post-run checks,ABANDONED,2017-12-17 23:22:07.000000000,2017-12-17 23:25:53.000000000,2,0,[],,0,"[{'number': 1, 'created': '2017-12-17 23:22:07.000000000', 'files': ['tools/gate/playbooks/describe-kubernetes-resources/tasks/main.yaml'], 'message': 'Add role and rolebinding descriptions to post-run checks\n\nAdds role and rolebinding descriptions as part of the describe-\nkubernetes-resources tasks that run as part of the post-run\nplaybooks in the gate as they were previously omitted\n\nChange-Id: I751c497ce471a1df49dfd9e300bd058779be3183\n'}]",528590,eafabd09a4a6dcc09d874727f8b12d36c57884ee,17591,Steve Wilkerson,srwilkers,0,"Add role and rolebinding descriptions to post-run checks
+
+Adds role and rolebinding descriptions as part of the describe-
+kubernetes-resources tasks that run as part of the post-run
+playbooks in the gate as they were previously omitted
+
+Change-Id: I751c497ce471a1df49dfd9e300bd058779be3183
+",['tools/gate/playbooks/describe-kubernetes-resources/tasks/main.yaml']
+openstack%2Fopenstack-ansible~527929,openstack/openstack-ansible,master,Ic907ee734a95e8af7c4c51568cc0870607b7b2f9,ceph: Switch to central ceph-ansible repository,MERGED,2017-12-14 10:42:55.000000000,2017-12-17 21:57:05.000000000,4,24,"[{'_account_id': 538, 'name': 'Major Hayden', 'email': 'major@mhtx.net', 'username': 'rackerhacker'}, {'_account_id': 6816, 'name': 'Jesse Pretorius', 'email': 'jesse@odyssey4.me', 'username': 'jesse-pretorius'}, {'_account_id': 7353, 'name': 'Kevin Carter', 'email': 'kevin@cloudnull.com', 'username': 'cloudnull'}, {'_account_id': 17068, 'name': 'Jean-Philippe Evrard', 'email': 'openstack@a.spamming.party', 'username': 'evrardjp'}, {'_account_id': 17799, 'name': 'Logan V', 'email': 'logan2211@gmail.com', 'username': 'Logan2211'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 23163, 'name': 'Markos Chandras (hwoarang)', 'email': 'markos@chandras.me', 'username': 'mchandras'}, {'_account_id': 24468, 'name': 'Limestone Networks CI', 'email': 'openstack-ci@limestonenetworks.com', 'username': 'limestone-ci', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 4, 'created': '2017-12-14 16:53:00.000000000', 'files': ['scripts/openstack-ansible.rc', 'tox.ini', 'ansible-role-requirements.yml'], 'message': 'ceph: Switch to central ceph-ansible repository\n\nAll the ceph roles are generated from the central ceph-ansible\nrepository. However, it appears that the script (or CI) that\ngenerates these roles has been broken for a while. The last update\nfor generated roles was nearly 2 months ago. This means that we\nare missing a lot of ceph features and fixes that exist in the central\nrepo but not on the generated roles. Lets switch to the main\nceph-ansible repository for our Ceph deployments in order to ensure\nthat we are always using the latest code.\n\nChange-Id: Ic907ee734a95e8af7c4c51568cc0870607b7b2f9\n'}]",527929,01501f33ad965e8174bcbdd05a7341dc691d171d,23163,Markos Chandras (hwoarang),mchandras,0,"ceph: Switch to central ceph-ansible repository
+
+All the ceph roles are generated from the central ceph-ansible
+repository. However, it appears that the script (or CI) that
+generates these roles has been broken for a while. The last update
+for generated roles was nearly 2 months ago. This means that we
+are missing a lot of ceph features and fixes that exist in the central
+repo but not on the generated roles. Lets switch to the main
+ceph-ansible repository for our Ceph deployments in order to ensure
+that we are always using the latest code.
+
+Change-Id: Ic907ee734a95e8af7c4c51568cc0870607b7b2f9
+","['scripts/openstack-ansible.rc', 'tox.ini', 'ansible-role-requirements.yml']"
+openstack%2Fopenstack-ansible~528365,openstack/openstack-ansible,master,Iac4167a63387f645e91d4529218c9d2de87ea5a7,"Revert ""Async clone for git roles""",MERGED,2017-12-15 18:11:17.000000000,2017-12-17 21:30:50.000000000,1,13,"[{'_account_id': 3, 'name': 'Jenkins', 'username': 'jenkins'}, {'_account_id': 538, 'name': 'Major Hayden', 'email': 'major@mhtx.net', 'username': 'rackerhacker'}, {'_account_id': 6816, 'name': 'Jesse Pretorius', 'email': 'jesse@odyssey4.me', 'username': 'jesse-pretorius'}, {'_account_id': 7353, 'name': 'Kevin Carter', 'email': 'kevin@cloudnull.com', 'username': 'cloudnull'}, {'_account_id': 14805, 'name': 'Jimmy McCrory', 'email': 'jimmy.mccrory@gmail.com', 'username': 'jimmy-mccrory'}, {'_account_id': 15993, 'name': 'Amy Marrich', 'display_name': 'Amy Marrich (spotz)', 'email': 'amy@demarco.com', 'username': 'amarrich'}, {'_account_id': 17068, 'name': 'Jean-Philippe Evrard', 'email': 'openstack@a.spamming.party', 'username': 'evrardjp'}, {'_account_id': 17799, 'name': 'Logan V', 'email': 'logan2211@gmail.com', 'username': 'Logan2211'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 24468, 'name': 'Limestone Networks CI', 'email': 'openstack-ci@limestonenetworks.com', 'username': 'limestone-ci', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 2, 'created': '2017-12-15 18:11:36.000000000', 'files': ['tests/get-ansible-role-requirements.yml'], 'message': 'Revert ""Async clone for git roles""\n\nThis reverts commit 7a1e46b2c55d35037030454533fd436442706e7d.\n\nTasks executed asynchronously do not implement retries\nlike normal tasks do. As the role clones are failing quite\noften due to TLS failures we need the retries.\n\nChange-Id: Iac4167a63387f645e91d4529218c9d2de87ea5a7\n'}]",528365,4338a648d3b45ced1345dce92d71ec049ffe001d,6816,Jesse Pretorius,jesse-pretorius,0,"Revert ""Async clone for git roles""
+
+This reverts commit 7a1e46b2c55d35037030454533fd436442706e7d.
+
+Tasks executed asynchronously do not implement retries
+like normal tasks do. As the role clones are failing quite
+often due to TLS failures we need the retries.
+
+Change-Id: Iac4167a63387f645e91d4529218c9d2de87ea5a7
+",['tests/get-ansible-role-requirements.yml']
+openstack%2Fopenstack-ansible~527546,openstack/openstack-ansible,master,Ibdd0fa8b152004b450693498d61b84b204f74e9b,make include tasks dynamic when there is rescue,MERGED,2017-12-13 00:16:42.000000000,2017-12-17 21:18:52.000000000,1,0,"[{'_account_id': 6671, 'name': 'Jerry Zhao', 'email': 'xyzjerry@gmail.com', 'username': 'zhaoxinyu'}, {'_account_id': 6816, 'name': 'Jesse Pretorius', 'email': 'jesse@odyssey4.me', 'username': 'jesse-pretorius'}, {'_account_id': 7353, 'name': 'Kevin Carter', 'email': 'kevin@cloudnull.com', 'username': 'cloudnull'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 23163, 'name': 'Markos Chandras (hwoarang)', 'email': 'markos@chandras.me', 'username': 'mchandras'}, {'_account_id': 24468, 'name': 'Limestone Networks CI', 'email': 'openstack-ci@limestonenetworks.com', 'username': 'limestone-ci', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 1, 'created': '2017-12-13 00:16:42.000000000', 'files': ['tests/roles/bootstrap-host/tasks/main.yml'], 'message': 'make include tasks dynamic when there is rescue\n\nthere is an ansible bug that prevents rescue in failing tasks from\nbeing called if the task is included. so change it to\ndynamic to run rescue in preprocessing.\n\nhttps://github.com/ansible/ansible/issues/16254\n\nChange-Id: Ibdd0fa8b152004b450693498d61b84b204f74e9b\n'}]",527546,a8e99d296ecac96155da8e21c8812f9292ae48a1,6671,Jerry Zhao,zhaoxinyu,0,"make include tasks dynamic when there is rescue
+
+there is an ansible bug that prevents rescue in failing tasks from
+being called if the task is included. so change it to
+dynamic to run rescue in preprocessing.
+
+https://github.com/ansible/ansible/issues/16254
+
+Change-Id: Ibdd0fa8b152004b450693498d61b84b204f74e9b
+",['tests/roles/bootstrap-host/tasks/main.yml']
+openstack%2Fopenstack-helm-infra~528564,openstack/openstack-helm-infra,master,I3bf9baf9824e1b7f7e46c4fcae292240566d9153,Fluent-Logging: Update fluent-bit to use common OSH entrypoint pattern,MERGED,2017-12-17 14:20:03.000000000,2017-12-17 21:05:59.000000000,33,0,"[{'_account_id': 17591, 'name': 'Steve Wilkerson', 'email': 'wilkers.steve@gmail.com', 'username': 'srwilkers'}, {'_account_id': 17966, 'name': 'Steven Wilkerson', 'email': 'srwilkers@outlook.com', 'username': 'srwilker'}, {'_account_id': 20466, 'name': 'Tin Lam', 'email': 'tin@lam.wtf', 'username': 'tinlam'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 22477, 'name': 'Matt McEuen', 'email': 'matt.mceuen@att.com', 'username': 'mattmceuen'}]",,0,"[{'number': 3, 'created': '2017-12-17 17:33:24.000000000', 'files': ['fluent-logging/templates/daemonset-fluent-bit.yaml', 'fluent-logging/templates/bin/_fluent-bit.sh.tpl', 'fluent-logging/templates/configmap-bin.yaml'], 'message': 'Fluent-Logging: Update fluent-bit to use common OSH entrypoint pattern\n\nThis PS updates the fluent-logging chart to use the same entrypoint\npattern as other OSH components.\n\nChange-Id: I3bf9baf9824e1b7f7e46c4fcae292240566d9153\n'}]",528564,611a78fb349d9902eee837d38711023bf7987854,23928,Pete Birley,portdirect,0,"Fluent-Logging: Update fluent-bit to use common OSH entrypoint pattern
+
+This PS updates the fluent-logging chart to use the same entrypoint
+pattern as other OSH components.
+
+Change-Id: I3bf9baf9824e1b7f7e46c4fcae292240566d9153
+","['fluent-logging/templates/daemonset-fluent-bit.yaml', 'fluent-logging/templates/bin/_fluent-bit.sh.tpl', 'fluent-logging/templates/configmap-bin.yaml']"
+openstack%2Fopenstack-helm-infra~528495,openstack/openstack-helm-infra,master,I2c2d8180a6e05ac6babc72f6347f00a19bf7e0fd,Kubernetes: Update to v1.9.0,MERGED,2017-12-16 20:13:55.000000000,2017-12-17 20:35:37.000000000,1,1,"[{'_account_id': 17591, 'name': 'Steve Wilkerson', 'email': 'wilkers.steve@gmail.com', 'username': 'srwilkers'}, {'_account_id': 20466, 'name': 'Tin Lam', 'email': 'tin@lam.wtf', 'username': 'tinlam'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 3, 'created': '2017-12-17 17:06:40.000000000', 'files': ['tools/gate/playbooks/vars.yaml'], 'message': 'Kubernetes: Update to v1.9.0\n\nThis PS updates the OpenStack-Infra Gate to use Kubernetes v1.9.0\n\nChange-Id: I2c2d8180a6e05ac6babc72f6347f00a19bf7e0fd\n'}]",528495,c189522fdb737aff53c459256f2934429b54e6e6,23928,Pete Birley,portdirect,0,"Kubernetes: Update to v1.9.0
+
+This PS updates the OpenStack-Infra Gate to use Kubernetes v1.9.0
+
+Change-Id: I2c2d8180a6e05ac6babc72f6347f00a19bf7e0fd
+",['tools/gate/playbooks/vars.yaml']
+openstack%2Fopenstack-helm-infra~528502,openstack/openstack-helm-infra,master,I8aa876aa96119d9a1a0e06c28873e3c4c1e3ace5,Docker: user json-file on Fedora and CentOS,MERGED,2017-12-16 21:25:01.000000000,2017-12-17 20:29:25.000000000,2,2,"[{'_account_id': 17591, 'name': 'Steve Wilkerson', 'email': 'wilkers.steve@gmail.com', 'username': 'srwilkers'}, {'_account_id': 20466, 'name': 'Tin Lam', 'email': 'tin@lam.wtf', 'username': 'tinlam'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 3, 'created': '2017-12-17 17:06:16.000000000', 'files': ['tools/gate/playbooks/deploy-docker/templates/fedora-docker.service.j2', 'tools/gate/playbooks/deploy-docker/templates/centos-docker.service.j2'], 'message': 'Docker: user json-file on Fedora and CentOS\n\nThe current fluent-bit implementation only supports the json-file\nlog driver for docker, this PS moves CentOS and Fedora to use that\nuntil we can support Journald.\n\nChange-Id: I8aa876aa96119d9a1a0e06c28873e3c4c1e3ace5\n'}]",528502,f472531ace96556123f9e4ca594dfda2f12626df,23928,Pete Birley,portdirect,0,"Docker: user json-file on Fedora and CentOS
+
+The current fluent-bit implementation only supports the json-file
+log driver for docker, this PS moves CentOS and Fedora to use that
+until we can support Journald.
+
+Change-Id: I8aa876aa96119d9a1a0e06c28873e3c4c1e3ace5
+","['tools/gate/playbooks/deploy-docker/templates/fedora-docker.service.j2', 'tools/gate/playbooks/deploy-docker/templates/centos-docker.service.j2']"
+openstack%2Fopenstack-helm-infra~522908,openstack/openstack-helm-infra,master,If3a437e0756a363b8cefaa9a8bdd1c3498fedbfd,CentOS: Fix jq and pip installation,MERGED,2017-11-25 01:18:43.000000000,2017-12-17 20:26:46.000000000,22,37,"[{'_account_id': 7769, 'name': 'Pentheus', 'display_name': 'Alan Meadows', 'email': 'alan.meadows@gmail.com', 'username': 'alanmeadows'}, {'_account_id': 17591, 'name': 'Steve Wilkerson', 'email': 'wilkers.steve@gmail.com', 'username': 'srwilkers'}, {'_account_id': 17966, 'name': 'Steven Wilkerson', 'email': 'srwilkers@outlook.com', 'username': 'srwilker'}, {'_account_id': 20466, 'name': 'Tin Lam', 'email': 'tin@lam.wtf', 'username': 'tinlam'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 22477, 'name': 'Matt McEuen', 'email': 'matt.mceuen@att.com', 'username': 'mattmceuen'}, {'_account_id': 23928, 'name': 'Pete Birley', 'email': 'petebirley@gmail.com', 'username': 'portdirect'}]",,0,"[{'number': 9, 'created': '2017-12-17 17:05:50.000000000', 'files': ['tools/gate/playbooks/deploy-yq/tasks/main.yaml', 'tools/gate/playbooks/deploy-helm-packages/tasks/helm-setup-dev-environment.yaml', 'tools/gate/playbooks/deploy-python-pip/tasks/main.yaml'], 'message': 'CentOS: Fix jq and pip installation\n\nThis PS fixes pip and jq installation on CentOS. It also removes\nsome duplicate code in the gate playbooks.\n\nCo-Authored-By: portdirect <pete@port.direct>\n\nThis patch set should fix an issue where centos cannot find\npython-pip in the EPEL.\n\nChange-Id: If3a437e0756a363b8cefaa9a8bdd1c3498fedbfd\n'}]",522908,e4de36d97b5c67cb30e885dedf0e2e17af25ac6c,20466,Tin Lam,tinlam,0,"CentOS: Fix jq and pip installation
+
+This PS fixes pip and jq installation on CentOS. It also removes
+some duplicate code in the gate playbooks.
+
+Co-Authored-By: portdirect <pete@port.direct>
+
+This patch set should fix an issue where centos cannot find
+python-pip in the EPEL.
+
+Change-Id: If3a437e0756a363b8cefaa9a8bdd1c3498fedbfd
+","['tools/gate/playbooks/deploy-yq/tasks/main.yaml', 'tools/gate/playbooks/deploy-helm-packages/tasks/helm-setup-dev-environment.yaml', 'tools/gate/playbooks/deploy-python-pip/tasks/main.yaml']"
+openstack%2Fopenstack-ansible-tests~527200,openstack/openstack-ansible-tests,master,I8c3dce39c17175edfb7c37dc0de3e9b9d1d0babb,"Revert ""Revert ""Use Ansible 2.4""""",MERGED,2017-12-11 18:05:55.000000000,2017-12-17 19:18:27.000000000,2,2,"[{'_account_id': 3, 'name': 'Jenkins', 'username': 'jenkins'}, {'_account_id': 538, 'name': 'Major Hayden', 'email': 'major@mhtx.net', 'username': 'rackerhacker'}, {'_account_id': 6816, 'name': 'Jesse Pretorius', 'email': 'jesse@odyssey4.me', 'username': 'jesse-pretorius'}, {'_account_id': 7353, 'name': 'Kevin Carter', 'email': 'kevin@cloudnull.com', 'username': 'cloudnull'}, {'_account_id': 17068, 'name': 'Jean-Philippe Evrard', 'email': 'openstack@a.spamming.party', 'username': 'evrardjp'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}]",,0,"[{'number': 2, 'created': '2017-12-13 09:29:44.000000000', 'files': ['test-ansible-deps.txt'], 'message': 'Revert ""Revert ""Use Ansible 2.4""""\n\nThis reverts commit 6713b5e9f7b334fef88173a939608a1af6fe5d9e.\n\nWith the facility [1] to add parameters (like exclusions) to the\nansible-lint test, and the implementation of an appropriate exclusion\n[2] to the integrated repo, we can move forward with updating both\nansible and ansible-lint here.\n\n[1] https://review.openstack.org/527195\n[2] https://review.openstack.org/527198\n\nDepends-On: If5746d35ee1b8ce5d6fd1a14a2abca16e29cb899\nDepends-On: Icaa997a37d9e31c70e952a80a3f75050965d7ef5\nDepends-On: I774829efd763da2400062574bc8266e544d6f75d\nChange-Id: I8c3dce39c17175edfb7c37dc0de3e9b9d1d0babb\n'}]",527200,ac53b4d6464e4c14ac25c50b034468e8cf0b42d8,6816,Jesse Pretorius,jesse-pretorius,0,"Revert ""Revert ""Use Ansible 2.4""""
+
+This reverts commit 6713b5e9f7b334fef88173a939608a1af6fe5d9e.
+
+With the facility [1] to add parameters (like exclusions) to the
+ansible-lint test, and the implementation of an appropriate exclusion
+[2] to the integrated repo, we can move forward with updating both
+ansible and ansible-lint here.
+
+[1] https://review.openstack.org/527195
+[2] https://review.openstack.org/527198
+
+Depends-On: If5746d35ee1b8ce5d6fd1a14a2abca16e29cb899
+Depends-On: Icaa997a37d9e31c70e952a80a3f75050965d7ef5
+Depends-On: I774829efd763da2400062574bc8266e544d6f75d
+Change-Id: I8c3dce39c17175edfb7c37dc0de3e9b9d1d0babb
+",['test-ansible-deps.txt']
+openstack%2Fdragonflow~527625,openstack/dragonflow,master,Ia9bd70f2cf680e24d0bc02bdfa2aa615fea4b440,Re-add a test that was removed from the gate,MERGED,2017-12-13 08:06:42.000000000,2017-12-17 19:18:09.000000000,3,2,"[{'_account_id': 17880, 'name': 'Shachar Snapiri', 'email': 'shachar.snapiri@toganetworks.com', 'username': 'snapiri'}, {'_account_id': 22348, 'name': 'Zuul', 'username': 'zuul', 'tags': ['SERVICE_USER']}, {'_account_id': 23235, 'name': 'Lihi Wishnitzer', 'email': 'lihiwish@gmail.com', 'username': 'lihiwish'}, {'_account_id': 23766, 'name': 'Dima Kuznetsov', 'email': 'dima.kuznetsov@toganetworks.com', 'username': 'dimak'}, {'_account_id': 26131, 'name': 'Eyal Leshem', 'email': 'eyal.leshem@toganetworks.com', 'username': 'leyal'}]",,2,"[{'number': 4, 'created': '2017-12-17 11:51:46.000000000', 'files': ['dragonflow/tests/fullstack/test_apps.py'], 'message': 'Re-add a test that was removed from the gate\n\nIn some cases the dragonflow-dsvm-fullstack-etcd-zmq failed on the\ntest_reconnect_of_controller check. This was because we did not allow\nsufficient time for the controller to reconnect if the host was very\nbusy and/or the VM was slow.\nAllowing double the time resolved the issue.\n\nChange-Id: Ia9bd70f2cf680e24d0bc02bdfa2aa615fea4b440\nCloses-Bug: #1737889\n'}]",527625,3079462810213917ea6b4730df7c4c1dcb21981b,17880,Shachar Snapiri,snapiri,0,"Re-add a test that was removed from the gate
+
+In some cases the dragonflow-dsvm-fullstack-etcd-zmq failed on the
+test_reconnect_of_controller check. This was because we did not allow
+sufficient time for the controller to reconnect if the host was very
+busy and/or the VM was slow.
+Allowing double the time resolved the issue.
+
+Change-Id: Ia9bd70f2cf680e24d0bc02bdfa2aa615fea4b440
+Closes-Bug: #1737889
+",['dragonflow/tests/fullstack/test_apps.py']

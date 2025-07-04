@@ -12,12 +12,13 @@ logger = get_logger()
 
 class PairMetricsGenerator:
     def __init__(self):
-        self.METRICS = [m for m in constants.get_metrics()[:-10]]
+        self.METRICS = [m for m in constants.get_metrics()[:-8]]
         self.df_dependent_changes = None
         self.dependent_changes = None
         self.cross_pro_changes = None
         self.within_pro_changes = None
         self.df = None
+        self.df_changes = None
         self.changed_files = None
         self.changes_description = None
         self.added_lines = None
@@ -50,8 +51,9 @@ class PairMetricsGenerator:
 
         # Process OpenStack data
         df_changes = hpr.combine_openstack_data(changes_path="/Changes3/")
-        df_changes['reviewers'] = df_changes['reviewers'].map(ast.literal_eval)
-        df_changes['reviewers'] = df_changes['reviewers'].map(lambda x: [rev['_account_id'] for rev in x])
+        df_changes = df_changes[(df_changes['status']!='NEW')]
+        # df_changes['reviewers'] = df_changes['reviewers'].map(ast.literal_eval)
+        # df_changes['reviewers'] = df_changes['reviewers'].map(lambda x: [rev['_account_id'] for rev in x])
         df_changes['changed_files'] = df_changes['changed_files'].map(hpr.combine_changed_file_names)
         df_changes['commit_message'] = df_changes['commit_message'].map(hpr.preprocess_change_description)
 
@@ -90,7 +92,7 @@ class PairMetricsGenerator:
         self.added_lines = dict(zip(df_changes['number'], df_changes['insertions']))
         self.deleted_lines = dict(zip(df_changes['number'], df_changes['deletions']))
         
-        del df_changes  # Free up memory
+        self.df_changes = df_changes
 
         self.df = df_features
     
@@ -298,26 +300,70 @@ class PairMetricsGenerator:
 
         # Drop unnecessary columns
         X.drop(columns=[
-            'number_source', 'number_target', 'reviewers', 
+            'number_source', 'number_target', #'reviewers', 
             'project_source', 'project_target'
             # 'owner_account_id_source', 'owner_account_id_target'
         ], axis=1, inplace=True)
 
-        
+        desc_model = clas_util.doc2vec_model(self.df_changes, X[['Source', 'Target']].values, target[-1])
+        subject_model = clas_util.doc2vec_model(self.df_changes, X[['Source', 'Target']].values, target[-1], "subject")
+
+        X = clas_util.compute_embdedding_similarity(self.df_changes, desc_model, X, 'commit_message', 'desc')
+        X = clas_util.compute_embdedding_similarity(self.df_changes, subject_model, X, 'subject', 'subject')
+
         # Save the results
         X.to_csv(path, index=None)
         logger.info(f'** {target} successfully saved to the {path} **')
 
         return target
     
-    def process_all_folds(self, label="Train"):
+    def build_pairs_metrics2(self, label, target):
+        """Build pairs of metrics for a specific fold"""
+        logger.info(f'******** Started building pairs for fold {target} ********')
+        path = osp.join('.', 'Files', 'Data', label, target)
+        X = pd.read_csv(path)
+
+        X = pd.merge(
+            left=X, 
+            right=self.df[["number", "description_length", "subject_length"]], 
+            left_on='Source', 
+            right_on='number', 
+            how='inner',
+            suffixes=('_target', '_source')
+        )
+        X = pd.merge(
+            left=X, 
+            right=self.df[["number", "description_length", "subject_length"]], 
+            left_on='Target', 
+            right_on='number', 
+            how='inner',
+            suffixes=('_source', '_target')
+        )
+
+        # Drop unnecessary columns
+        X.drop(columns=[
+            'number_source', 'number_target'#'reviewers', 
+            # 'project_source', 'project_target'
+            # 'owner_account_id_source', 'owner_account_id_target'
+        ], axis=1, inplace=True)
+
+        # Save the results
+        X.to_csv(path, index=None)
+        logger.info(f'** {target} successfully saved to the {path} **')
+
+        return target
+    
+    def process_all_folds(self, label="Test"):
         """Process all folds for a given label"""
         fold_files = [f for f in hpr.list_file(osp.join('.', 'Files', 'Data', label))]
+        fold_files = [f for f in fold_files if f.startswith('temp100_15')]
         with concurrent.futures.ProcessPoolExecutor() as executor:
             results = [executor.submit(self.build_pairs_metrics, label, cpc) for cpc in fold_files]
 
             for out in concurrent.futures.as_completed(results):
-                logger.info(f'Features for target-based pair {out.result()} saved to memory successfully')
+                message = f'Features for target-based pair {out.result()} saved to memory successfully'
+                print(message)
+                logger.info(message)
 
 
 def main():

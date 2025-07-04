@@ -3,6 +3,7 @@ import re
 import os
 from datetime import datetime
 import utils.helpers as hpr
+import ast
 
 
 class OpenStackDependencyGenerator:
@@ -157,7 +158,7 @@ class OpenStackDependencyGenerator:
             second_number = row["Target"]
             change_id = row["Target_change_id"]
 
-        df_row = df.loc[df["number"] == number]
+        df_row = self.df.loc[self.df["number"] == number]
         revisions = ast.literal_eval(df_row["revisions"].values[0])
         revisions = sorted(revisions, key=lambda x: x["created"])
         if  len(revisions) == 1:
@@ -230,6 +231,40 @@ class OpenStackDependencyGenerator:
         df_depends_on = df_depends_on.loc[:, evolution_columns]
         df_depends_on.drop_duplicates(subset=["Source", "Target"], inplace=True)
         df_depends_on["Source"] = df_depends_on[["Source"]].astype(int)
+
+        # Get Source fields using merge
+        df_depends_on = pd.merge(
+            df_depends_on,
+            self.df[["number", "status", "change_id", "is_owner_bot", "owner_account_id", "created"]].rename(
+                columns={
+                    "number": "Source",
+                    "status": "Source_status",
+                    "change_id": "Source_change_id",
+                    "is_owner_bot": "is_source_bot",
+                    "owner_account_id": "Source_author",
+                    "created": "Source_date"
+                }
+            ),
+            on="Source",
+            how="left"
+        )
+
+        # Get Target fields using merge
+        df_needed_by = pd.merge(
+            df_needed_by,
+            df[["number", "status", "change_id", "revisions", "is_owner_bot", "owner_account_id", "created"]].rename(
+                columns={
+                    "number": "Target",
+                    "status": "Target_status",
+                    "change_id": "Target_change_id",
+                    "is_owner_bot": "is_target_bot",
+                    "owner_account_id": "Target_dev",
+                    "created": "Target_date"
+                }
+            ),
+            on="Target",
+            how="left"
+        )
 
         df_depends_on["is_cross"] = df_depends_on.apply(lambda row: "Cross" if row["Source_repo"] != row["Target_repo"] else "Same", axis=1)
 

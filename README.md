@@ -1,6 +1,6 @@
 # This is the replication package of the paper **An ML-based Approach to Predicting Software Change Dependencies**
 
-This project contains scripts, data, and results for studying and predicting depdenent changes.
+This project contains scripts, data, and results for studying and predicting dependent changes.
 
 ## An overview of the evaluation design
 

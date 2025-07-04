@@ -86,10 +86,10 @@ TEXT_METRICS = [
 
 PAIR_METRICS = [
     # metrics for the third model for the target change
-    "pctg_inter_dep_cha",
+    # "pctg_inter_dep_cha",
     "src_trgt_co_changed_nbr",
     "dev_in_src_change_nbr",
-    "rev_in_src_change_nbr",
+    # "rev_in_src_change_nbr",
     "num_shrd_desc_tkns",
     "num_shrd_file_tkns",
     "desc_sim",

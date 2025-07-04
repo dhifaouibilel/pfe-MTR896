@@ -24,8 +24,8 @@ class OpenStackDataTransformer:
         """
         self.DIR = base_dir if base_dir is not None else hpr.DIR
         # Folder containing the JSON file (raw data from Gerrit)
-        self.DATA_DIR = osp.join('.', 'Data')
-        self.CHANGES_DIR = 'Changes3'
+        self.DATA_DIR = osp.join('.', 'DataFull')
+        self.CHANGES_DIR = 'Changes2'
 
         # BILEL (A supprimer apres)
         # Init MongoManager class
@@ -261,7 +261,7 @@ class OpenStackDataTransformer:
             list or None: Filtered messages or None if empty.
         """
         res = [
-            {"rev_nbr": msg["_revision_number"], "author": msg.get("author", None).get("_account_id"), "date": msg["date"], "message": msg["message"]}
+            {"rev_nbr": msg["_revision_number"], "author": msg["author"]["_account_id"] if "author" in msg else None, "date": msg["date"], "message": msg["message"]}
             for msg in messages
             # if any(item in msg["message"] for item in ["Build failed.", "Build succeeded."])
         ]
@@ -399,6 +399,6 @@ class OpenStackDataTransformer:
         return processed_files
 
 
-# if __name__ == "__main__":
-#     transformer = OpenStackDataTransformer()
-#     transformer.transform_all_data()
+if __name__ == "__main__":
+    transformer = OpenStackDataTransformer()
+    transformer.transform_all_data()
