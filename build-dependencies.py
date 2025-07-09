@@ -1,10 +1,15 @@
 import pandas as pd
 import re
 import os
+import ast
 from datetime import datetime
 import utils.helpers as hpr
-import ast
 
+from db.db_manager import MongoManager
+from logging_config import get_logger
+
+
+logger = get_logger()
 
 class OpenStackDependencyGenerator:
     """
@@ -21,6 +26,9 @@ class OpenStackDependencyGenerator:
         """
         self.DIR = base_dir if base_dir is not None else hpr.DIR
         self.df = None
+        self.change_collection = 'changes'
+        self.deps_collection = 'dependencies2'
+        self.mongo_manager = MongoManager()
         
     def prepare_directories(self):
         """
@@ -77,7 +85,7 @@ class OpenStackDependencyGenerator:
         obj["Target_repo"] = row["project"]
         
         row_src = None
-        if depends_on.isnumeric():
+        if str(depends_on).isnumeric():
             row_src = self.df[self.df["number"] == int(depends_on)]
         else:
             row_src = self.df[self.df["change_id"] == depends_on]
@@ -105,7 +113,7 @@ class OpenStackDependencyGenerator:
         obj["Source"] = row["number"]
         obj["Source_repo"] = row["project"]
         
-        if needed_by.isnumeric():
+        if str(needed_by).isnumeric():
             row_target = self.df[self.df["number"] == int(needed_by)]
         else:
             row_target = self.df[self.df["change_id"] == needed_by]
@@ -148,7 +156,15 @@ class OpenStackDependencyGenerator:
     def retrieve_revision_date(self, row, attr, return_revision_date=True):
         number = None
         second_number = None
-
+        
+        # 🔒 Protection contre colonnes manquantes
+        required_columns = ["Source", "Target", "Source_change_id", "Target_change_id"]
+        for col in required_columns:
+            if col not in row:
+                logger.error(f"⚠️ Colonne manquante : '{col}' dans la ligne :\n{row}")
+                return None
+        
+        #   logger.info("Colonnes dans df_depends_on :", row.columns.tolist())
         if attr == "Depends-On":
             number = row["Target"]
             second_number = row["Source"]
@@ -159,7 +175,19 @@ class OpenStackDependencyGenerator:
             change_id = row["Target_change_id"]
 
         df_row = self.df.loc[self.df["number"] == number]
-        revisions = ast.literal_eval(df_row["revisions"].values[0])
+
+        
+        if df_row.empty:
+            logger.info(f"⚠️ Aucun changement trouvé avec le numéro {number}")
+            return None 
+    
+        # revisions = ast.literal_eval(df_row["revisions"].values[0])
+        revisions_raw = df_row["revisions"].values[0]
+        if isinstance(revisions_raw, str):
+            revisions = ast.literal_eval(revisions_raw)
+        else:
+            revisions = revisions_raw
+
         revisions = sorted(revisions, key=lambda x: x["created"])
         if  len(revisions) == 1:
             if return_revision_date:
@@ -194,8 +222,9 @@ class OpenStackDependencyGenerator:
         return "Same" if row["Source_dev"] == row["Target_dev"] else "Different"
 
     def identify_dependency(self, row):
-        source_date = row["Source_date"] 
-        target_date = row["Target_date"]
+        source_date = pd.to_datetime(row["Source_date"]) 
+        target_date = pd.to_datetime(row["Target_date"])
+
         link_date = datetime.strptime(row["link_date"], "%Y-%m-%d %H:%M:%S")
         delta2 = (source_date - link_date).total_seconds() / (60 * 60)
 
@@ -241,7 +270,9 @@ class OpenStackDependencyGenerator:
                     "status": "Source_status",
                     "change_id": "Source_change_id",
                     "is_owner_bot": "is_source_bot",
-                    "owner_account_id": "Source_author",
+
+                    "owner_account_id": "Source_dev",
+
                     "created": "Source_date"
                 }
             ),
@@ -250,9 +281,11 @@ class OpenStackDependencyGenerator:
         )
 
         # Get Target fields using merge
-        df_needed_by = pd.merge(
-            df_needed_by,
-            df[["number", "status", "change_id", "revisions", "is_owner_bot", "owner_account_id", "created"]].rename(
+
+        df_depends_on = pd.merge(
+            df_depends_on,
+            self.df[["number", "status", "change_id", "revisions", "is_owner_bot", "owner_account_id", "created"]].rename(
+
                 columns={
                     "number": "Target",
                     "status": "Target_status",
@@ -270,7 +303,7 @@ class OpenStackDependencyGenerator:
 
         df_depends_on["link_date"] = df_depends_on.apply(self.retrieve_revision_date, args=("Depends-On",), axis=1)
         df_depends_on["worked_revisions"] = df_depends_on.apply(self.retrieve_revision_date, args=("Depends-On",False,), axis=1)
-        df_depends_on["same_dev"] = df_depends_on.apply(self.is_same_developer, axis=1)
+        df_depends_on["same_author"] = df_depends_on.apply(self.is_same_developer, axis=1)
         df_depends_on["when_identified"] = df_depends_on[["Source_date", "Target_date", "link_date"]].apply(self.identify_dependency, axis=1)
         df_depends_on["deps_label"] = "Depends-On"
         
@@ -285,11 +318,45 @@ class OpenStackDependencyGenerator:
         df_needed_by = df_needed_by.loc[:, evolution_columns]
         df_needed_by["Target"] = df_needed_by[["Target"]].astype(int)
 
+        # Get Source fields using merge
+        df_needed_by = pd.merge(
+            df_needed_by,
+            self.df[["number", "status", "change_id", "is_owner_bot", "owner_account_id", "created"]].rename(
+                columns={
+                    "number": "Source",
+                    "status": "Source_status",
+                    "change_id": "Source_change_id",
+                    "is_owner_bot": "is_source_bot",
+                    "owner_account_id": "Source_dev",
+                    "created": "Source_date"
+                }
+            ),
+            on="Source",
+            how="left"
+        )
+
+        # Get Target fields using merge
+        df_needed_by = pd.merge(
+            df_needed_by,
+            self.df[["number", "status", "change_id", "revisions", "is_owner_bot", "owner_account_id", "created"]].rename(
+                columns={
+                    "number": "Target",
+                    "status": "Target_status",
+                    "change_id": "Target_change_id",
+                    "is_owner_bot": "is_target_bot",
+                    "owner_account_id": "Target_dev",
+                    "created": "Target_date"
+                }
+            ),
+            on="Target",
+            how="left"
+        )
+
         df_needed_by["is_cross"] = df_needed_by.apply(lambda row: "Cross" if row["Source_repo"] != row["Target_repo"] else "Same", axis=1)
 
-        df_needed_by["link_date"] = df_needed_by.apply(self, self.retrieve_revision_date, args=("Depends-On",), axis=1)
-        df_needed_by["worked_revisions"] = df_needed_by.apply(self, self.retrieve_revision_date, args=("Depends-On",False,), axis=1)
-        df_needed_by["same_dev"] = df_needed_by.apply(self, self.is_same_developer, axis=1)
+        df_needed_by["link_date"] = df_needed_by.apply(self.retrieve_revision_date, args=("Depends-On",), axis=1)
+        df_needed_by["worked_revisions"] = df_needed_by.apply(self.retrieve_revision_date, args=("Depends-On",False,), axis=1)
+        df_needed_by["same_author"] = df_needed_by.apply(self.is_same_developer, axis=1)
         df_needed_by["when_identified"] = df_needed_by[["Source_date", "Target_date", "link_date"]].apply(self.identify_dependency, axis=1)
         df_needed_by["deps_label"] = "Needed-By"
 
@@ -298,46 +365,15 @@ class OpenStackDependencyGenerator:
         df_depends_needed = pd.concat((df_depends_on, df_needed_by)).reset_index(drop=True)
         df_depends_needed.drop_duplicates(subset=["Source", "Target"], inplace=True)
 
-        # Add additional metadata through merges
-        df_depends_needed = pd.merge(
-            left=df_depends_needed,
-            right=self.df[["number", "status", "owner_account_id", "created", "change_id", "is_owner_bot"]],
-            left_on=['Source'],
-            right_on=['number'],
-            how='left',
-            suffixes=('_target', '_source')
-        )
-        
-        df_depends_needed = pd.merge(
-            left=df_depends_needed,
-            right=self.df[["number", "status", "owner_account_id", "created", "change_id", "is_owner_bot"]],
-            left_on=['Target'],
-            right_on=['number'],
-            how='left',
-            suffixes=('_source', '_target')
-        )
-        
-        # Rename columns for clarity
-        df_depends_needed.rename(columns={
-            "status_source": "Source_status",
-            "status_target": "Target_status",
-            "author_source": "Source_author",
-            "status_author": "Target_status",
-            "created_source": "Source_date",
-            "created_target": "Target_date",
-            "change_id_target": "Target_change_id",
-            "change_id_source": "Source_change_id",
-            "is_owner_bot_target": "Target_is_owner_bot",
-            "is_owner_bot_source": "Source_is_owner_bot",
-        }, inplace=True)
-
         df_depends_needed = df_depends_needed.reset_index(drop=True)
 
         # Save results to CSV files
         print("Saving results to CSV files...")
         df_depends_on.to_csv(f"{self.DIR}/Files/source_target_depends2.csv", index=False)
         df_needed_by.to_csv(f"{self.DIR}/Files/source_target_needed2.csv", index=False)
-        df_depends_needed.to_csv(f"{self.DIR}/Files/source_target_evolution2.csv", index=False)
+        # df_depends_needed.to_csv(f"{self.DIR}/Files/source_target_evolution2.csv", index=False)
+        
+        self.mongo_manager.save_to_db(self.deps_collection, df_depends_needed)
 
         return df_depends_on, df_needed_by, df_depends_needed
     
@@ -357,7 +393,8 @@ class OpenStackDependencyGenerator:
         
         # Load OpenStack data
         print("Loading OpenStack data...")
-        self.df = hpr.combine_openstack_data(changes_path="/Changes3/")
+        # self.df = hpr.combine_openstack_data(changes_path="/Changes3/")
+        self.df = self.mongo_manager.read_all(self.change_collection)
         
         # Generate evolution data
         results = self.generate_os_evolution_data()

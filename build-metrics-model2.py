@@ -7,6 +7,8 @@ from utils import helpers as hpr
 from utils import constants
 from utils import classifier_util as clas_util
 from logging_config import get_logger
+from db.db_manager import MongoManager
+
 
 logger = get_logger()
 
@@ -23,6 +25,10 @@ class PairMetricsGenerator:
         self.changes_description = None
         self.added_lines = None
         self.deleted_lines = None
+        self.changes_collection = 'changes'
+        self.metrics_collection = 'metrics'
+        self.deps_collection = 'dependencies2'
+        self.mongo_manager = MongoManager()
 
     def calc_mod_file_dep_cha(self, row):
         changed_files = row["changed_files"]
@@ -33,10 +39,13 @@ class PairMetricsGenerator:
     def initialize_global_vars(self):
         """Initialize all global variables needed for analysis"""
         # Load dependencies data
-        df_deps = pd.read_csv(osp.join('.', 'Files', 'source_target_evolution_clean.csv'))
+        # df_deps = pd.read_csv(osp.join('.', 'Files', 'source_target_evolution_clean.csv'))
+        df_deps = self.mongo_manager.read_all(self.deps_collection)
         df_deps['Source_date'] = pd.to_datetime(df_deps['Source_date'])
         df_deps['Target_date'] = pd.to_datetime(df_deps['Target_date'])
         df_deps['related'] = True
+        df_deps.loc[df_deps['Source_repo'].str.startswith('openstack/'), 'Source_repo'] = df_deps['Source_repo'].map(lambda x: x[10:])
+        df_deps.loc[df_deps['Target_repo'].str.startswith('openstack/'), 'Target_repo'] = df_deps['Target_repo'].map(lambda x: x[10:])
 
         self.df_dependent_changes = df_deps
 
@@ -50,15 +59,29 @@ class PairMetricsGenerator:
         self.within_pro_changes = within_pro_changes_loc
 
         # Process OpenStack data
-        df_changes = hpr.combine_openstack_data(changes_path="/Changes3/")
-        df_changes = df_changes[(df_changes['status']!='NEW')]
+
+        # df_changes = hpr.combine_openstack_data(changes_path="/Changes3/")
+        df_changes = self.mongo_manager.read_filtered_changes()
+
+        def safe_literal_eval(x):
+            if isinstance(x, str):
+                try:
+                    return ast.literal_eval(x)
+                except (ValueError, SyntaxError):
+                    return None
+            return x  # déjà un objet Python
+
+        df_changes['reviewers'] = df_changes['reviewers'].map(safe_literal_eval)
         # df_changes['reviewers'] = df_changes['reviewers'].map(ast.literal_eval)
+        df_changes['reviewers'] = df_changes['reviewers'].map( lambda x: [rev['_account_id'] for rev in x] if isinstance(x, list) else [])
+
         # df_changes['reviewers'] = df_changes['reviewers'].map(lambda x: [rev['_account_id'] for rev in x])
         df_changes['changed_files'] = df_changes['changed_files'].map(hpr.combine_changed_file_names)
         df_changes['commit_message'] = df_changes['commit_message'].map(hpr.preprocess_change_description)
 
         # Combine features
-        df_features = self.combine_features()
+        # df_features = self.combine_features()
+        df_features = self.mongo_manager.read_all(self.metrics_collection)
         df_features = pd.merge(
             left=df_features, 
             right=df_changes[['number', 'created', 'project', 'owner_account_id', 'reviewers']], 
@@ -69,19 +92,19 @@ class PairMetricsGenerator:
         )
 
         # Combine file metrics
-        path = osp.join(".", "Files", "file-metrics")
-        file_metrics = hpr.combine_file_metrics(path)
+        # path = osp.join(".", "Files", "file-metrics")
+        # file_metrics = hpr.combine_file_metrics(path)
 
-        # Combine file metrics with original list of features
-        df_features = pd.merge(
-            left=df_features,
-            right=file_metrics,
-            left_on='number',
-            right_on='number',
-            how='left',
-            suffixes=('_source', '_target')
-        )
-        df_features['pctg_mod_file_dep_cha'] = df_features.apply(self.calc_mod_file_dep_cha, axis=1)
+        # # Combine file metrics with original list of features
+        # df_features = pd.merge(
+        #     left=df_features,
+        #     right=file_metrics,
+        #     left_on='number',
+        #     right_on='number',
+        #     how='left',
+        #     suffixes=('_source', '_target')
+        # )
+        # df_features['pctg_mod_file_dep_cha'] = df_features.apply(self.calc_mod_file_dep_cha, axis=1)
 
         df_features['is_dependent'] = df_features['number'].map(lambda nbr: 1 if nbr in dependent_changes_loc else 0)
         df_features['is_cross'] = df_features['number'].map(self.is_cross_project)
@@ -194,9 +217,11 @@ class PairMetricsGenerator:
 
     def count_src_trgt_co_changed(self, row):
         """Count how many times source and target were co-changed"""
+        # logger.info(self.df_dependent_changes['Source_repo'].value_counts())
+        # logger.info(row['Source_repo'].value_counts())
         return len(self.df_dependent_changes[
-            (self.df_dependent_changes['Source_repo'] == row['project_source']) &
-            (self.df_dependent_changes['Target_repo'] == row['project_target']) &
+            (self.df_dependent_changes['Source_repo'] == row['Source_repo']) &
+            (self.df_dependent_changes['Target_repo'] == row['Target_repo']) &
             (self.df_dependent_changes['Target_date'] < row['Target_date'])
         ])
     
@@ -244,22 +269,28 @@ class PairMetricsGenerator:
         #     suffixes=('_source', '_target')
         # )
 
+        # Merge with Source data
         X = pd.merge(
-            left=X, 
-            right=self.df[self.METRICS + additional_attrs], 
-            left_on='Source', 
-            right_on='number', 
+            left=X,
+            right=self.df[self.METRICS + additional_attrs],
+            left_on='Source',
+            right_on='number',
             how='inner',
-            suffixes=('_target', '_source')
+            suffixes=('', '_source')
         )
+        # Drop the redundant 'number' column from the right DataFrame
+        X.drop(columns=['number'], inplace=True)
+
+        # Merge with Target data
         X = pd.merge(
-            left=X, 
-            right=self.df[self.METRICS + additional_attrs], 
-            left_on='Target', 
-            right_on='number', 
+            left=X,
+            right=self.df[self.METRICS + additional_attrs],
+            left_on='Target',
+            right_on='number',
             how='inner',
-            suffixes=('_source', '_target')
+            suffixes=('', '_target')
         )
+        X.drop(columns=['number'], inplace=True)
 
          # Rename columns for clarity
         X.rename(columns={
@@ -303,7 +334,7 @@ class PairMetricsGenerator:
             'number_source', 'number_target', #'reviewers', 
             'project_source', 'project_target'
             # 'owner_account_id_source', 'owner_account_id_target'
-        ], axis=1, inplace=True)
+        ], axis=1, inplace=True, errors='ignore')
 
         desc_model = clas_util.doc2vec_model(self.df_changes, X[['Source', 'Target']].values, target[-1])
         subject_model = clas_util.doc2vec_model(self.df_changes, X[['Source', 'Target']].values, target[-1], "subject")
@@ -317,53 +348,73 @@ class PairMetricsGenerator:
 
         return target
     
-    def build_pairs_metrics2(self, label, target):
-        """Build pairs of metrics for a specific fold"""
+
+    def build_temp_metric(self, label,target):
         logger.info(f'******** Started building pairs for fold {target} ********')
         path = osp.join('.', 'Files', 'Data', label, target)
         X = pd.read_csv(path)
+        X['Source_date'] = pd.to_datetime(X['Source_date'])
+        X['Target_date'] = pd.to_datetime(X['Target_date'])
+        additional_attrs = ['number', 'project']
 
         X = pd.merge(
             left=X, 
-            right=self.df[["number", "description_length", "subject_length"]], 
+            right=self.df[additional_attrs], 
             left_on='Source', 
             right_on='number', 
-            how='inner',
+            how='left',
             suffixes=('_target', '_source')
         )
+        # # Drop the redundant 'number' column from the right DataFrame
+        # X.drop(columns=['number'], inplace=True)
         X = pd.merge(
             left=X, 
-            right=self.df[["number", "description_length", "subject_length"]], 
+            right=self.df[additional_attrs], 
             left_on='Target', 
             right_on='number', 
-            how='inner',
+            how='left',
             suffixes=('_source', '_target')
         )
+        # # Drop the redundant 'number' column from the right DataFrame
+        X.drop(columns=['number_source', 'number_target'], inplace=True)
+ 
 
-        # Drop unnecessary columns
-        X.drop(columns=[
-            'number_source', 'number_target'#'reviewers', 
-            # 'project_source', 'project_target'
-            # 'owner_account_id_source', 'owner_account_id_target'
-        ], axis=1, inplace=True)
+
+         # Rename columns for clarity
+        X.rename(columns={
+            # "owner_account_id_source": "Source_author",
+            # "owner_account_id_target": "Target_author",
+            # "created_source": "Source_date",
+            # "created_target": "Target_date"
+            "project_source": "Source_repo",
+            "project_target": "Target_repo",
+        }, inplace=True)
+        
+        # logger.info(X.columns[:30])
+        X['src_trgt_co_changed_nbr'] = X.apply(self.count_src_trgt_co_changed, axis=1)
+        logger.info(f'** src_trgt_co_changed_nbr for {target} generated **')
+
+        
 
         # Save the results
         X.to_csv(path, index=None)
         logger.info(f'** {target} successfully saved to the {path} **')
 
         return target
-    
+
+        
     def process_all_folds(self, label="Test"):
         """Process all folds for a given label"""
         fold_files = [f for f in hpr.list_file(osp.join('.', 'Files', 'Data', label))]
-        fold_files = [f for f in fold_files if f.startswith('temp100_15')]
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            results = [executor.submit(self.build_pairs_metrics, label, cpc) for cpc in fold_files]
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            # results = [executor.submit(self.build_pairs_metrics, label, cpc) for cpc in fold_files]
+            results = [executor.submit(self.build_temp_metric, label, cpc) for cpc in fold_files]
 
             for out in concurrent.futures.as_completed(results):
-                message = f'Features for target-based pair {out.result()} saved to memory successfully'
-                print(message)
-                logger.info(message)
+                logger.info(f'Features for target-based pair {out.result()} saved to memory successfully')
+                
+    
+
 
 
 def main():

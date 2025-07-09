@@ -180,12 +180,24 @@ def preprocess_change_description(text):
     return new_text
 
 
-def combine_changed_file_names(x):
-    tokens = []
-    for cf in ast.literal_eval(x):
-        tokens += re.split('/|_', cf)
+# def combine_changed_file_names(x):
+#     tokens = []
+#     for cf in ast.literal_eval(x):
+#         tokens += re.split('/|_', cf)
 
-    return tokens
+#     return tokens
+
+def combine_changed_file_names(x):
+    # Si déjà une liste, ne pas essayer d'évaluer
+    if isinstance(x, list):
+        return " ".join(x)
+    try:
+        parsed = ast.literal_eval(x)
+        if isinstance(parsed, list):
+            return " ".join(parsed)
+        return str(parsed)
+    except Exception:
+        return str(x)
 
 def combine_file_metrics(path=None):
     if not path:

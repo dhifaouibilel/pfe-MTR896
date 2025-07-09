@@ -32,7 +32,7 @@ DEVELOPER_METRICS = [
     'cross_project_changes_owner',
     'within_project_changes_owner',
     'whole_changes_owner',
-    'pctg_cross_project_changes_owner',
+    # 'pctg_cross_project_changes_owner',
     'projects_contributed_owner',
     'project_changes_owner',
     'ratio_dep_chan_owner'
@@ -61,7 +61,7 @@ PROJECT_METRICS = [
     'last_mth_cro_proj_nbr',
     'cross_project_changes',
     'within_project_changes',
-    'pctg_cross_project_changes',
+    # 'pctg_cross_project_changes',
     'whole_within_project_changes',
 ]
 
@@ -71,10 +71,10 @@ FILE_METRICS = [
     'num_file_types',
     'num_dev_modified_files',
     'avg_num_dev_modified_files',
-    'pctg_mod_file_dep_cha',
-    'min_num_mod_file_dep_cha',
-    'median_num_mod_file_dep_cha',
-    'max_num_mod_file_dep_cha'
+    # 'pctg_mod_file_dep_cha',
+    # 'min_num_mod_file_dep_cha',
+    # 'median_num_mod_file_dep_cha',
+    # 'max_num_mod_file_dep_cha'
 ]
 TEXT_METRICS = [
     # Text dimension

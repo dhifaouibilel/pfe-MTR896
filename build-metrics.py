@@ -9,13 +9,17 @@ import re
 from typing import List, Dict, Set, Optional, Union
 import utils.helpers as hpr
 from utils import constants
+from db.db_manager import MongoManager
+from logging_config import get_logger
+
+logger = get_logger()
+
 
 class ChangeMetricsCalculator:
     """
     A class to calculate various metrics for code changes in software projects.
     """
     
-    DESCRIPTION_METRICS = constants.DESCRIPTION_METRICS
     
     def __init__(self):
         """Initialize the calculator with empty data structures."""
@@ -24,23 +28,53 @@ class ChangeMetricsCalculator:
         self.dependent_changes: Optional[Set[int]] = None
         self.cross_pro_changes: Optional[Set[int]] = None
         self.within_pro_changes: Optional[Set[int]] = None
+        self.metrics_collection = 'metrics'
+        self.changes_collection = 'changes'
+        self.deps_collection = 'dependencies2'
+        self.mongo_manager = MongoManager()
+        self.DESCRIPTION_METRICS = constants.DESCRIPTION
     
     def init_global_vars(self) -> None:
         """
         Initialize the global variables by loading and preprocessing the data.
         """
-        df = hpr.combine_openstack_data(changes_path="/Changes3/")
-        df = df[['number', 'project', 'created', 'owner_account_id', 'branch', 
-                'changed_files', 'insertions', 'deletions', 'subject', 
-                'commit_message', 'status']]
-        df['changed_files'] = df['changed_files'].map(ast.literal_eval)
+        # df = hpr.combine_openstack_data(changes_path="/Changes3/")
+        # df = self.mongo_manager.read_all(self.changes_collection)
+        # df = df[['number', 'project', 'created', 'owner_account_id', 'branch', 
+        #         'changed_files', 'insertions', 'deletions', 'subject', 
+        #         'commit_message', 'status']]
+        df = self.mongo_manager.read_filtered_changes()
+
+        def safe_literal_eval(val):
+            if isinstance(val, str):
+                try:
+                    # logger.info(f"str: {val=}")
+                    return ast.literal_eval(val)
+                except Exception:
+                    logger.exception(f"{val=}")
+                    return val  # ou [] si tu veux une liste vide en cas d'échec
+            # logger.exception(f"not str {val=}")
+            return val  # déjà une liste ou autre type valide
+        df['changed_files'] = df['changed_files'].map(safe_literal_eval)
         
-        df_dep_changes = pd.read_csv(osp.join('.', 'Files', 'all_dependencies.csv'))
-        df_dep_changes = df_dep_changes[(df_dep_changes['Source_status']!='NEW') & 
-                                       (df_dep_changes['Target_status']!='NEW')]
-        df_dep_changes['Source_date'] = pd.to_datetime(df_dep_changes['Source_date'])
-        df_dep_changes['Target_date'] = pd.to_datetime(df_dep_changes['Target_date'])
-        
+        # df_dep_changes = pd.read_csv(osp.join('.', 'Files', 'all_dependencies.csv'))
+        df_dep_changes = self.mongo_manager.read_all(self.deps_collection)
+        if df_dep_changes.empty:
+            logger.error("⚠️ La collection est vide, aucun document trouvé.")
+        else:
+            logger.info(f"✅ {len(df_dep_changes)} documents chargés depuis la collection.")
+        # ✅ Protection contre colonne manquante
+        if 'Source_status' in df_dep_changes.columns and 'Target_status' in df_dep_changes.columns:
+            df_dep_changes = df_dep_changes[(df_dep_changes['Source_status'] != 'NEW') & (df_dep_changes['Target_status'] != 'NEW')]
+        else:
+            print("❌ Les colonnes Source_status ou Target_status sont manquantes.")
+        # df_dep_changes = df_dep_changes[(df_dep_changes['Source_status']!='NEW') & (df_dep_changes['Target_status']!='NEW')]
+        if 'Source_date' in df_dep_changes.columns and 'Target_date' in df_dep_changes.columns:
+            df_dep_changes['Source_date'] = pd.to_datetime(df_dep_changes['Source_date'])
+            df_dep_changes['Target_date'] = pd.to_datetime(df_dep_changes['Target_date'])
+        else:
+            print("❌ Les colonnes Source_date ou Target_date sont manquantes.")
+            
         dependent_changes_loc = set(hpr.flatten_list(df_dep_changes[['Source', 'Target']].values))
         cross_pro_changes_loc = set(hpr.flatten_list(
             df_dep_changes.loc[df_dep_changes['is_cross']=='Cross', ['Source', 'Target']].values))
@@ -58,9 +92,29 @@ class ChangeMetricsCalculator:
     # Project-related metrics
     def count_project_age(self, row: pd.Series) -> float:
         """Calculate the age of the project when the change was created."""
+        logger.info(f'row created: {row.created}')
+            # S'assurer que les dates sont bien en datetime
+        if self.df_changes['created'].dtype == 'O':  
+            # 'O' = object, souvent string
+            self.df_changes['created'] = pd.to_datetime(self.df_changes['created'])
         project_creation_date = self.df_changes.loc[
             self.df_changes['project'] == row['project'], 'created'].iloc[0]
+        logger.info(f'project creation date: {project_creation_date}')
+        logger.info(f'project age: {(row.created - project_creation_date).total_seconds()}')
         return (row['created'] - project_creation_date).total_seconds()
+    
+    
+    # def count_project_age(self, row: pd.Series) -> float:
+    #     """Calculate the age of the project when the change was created."""
+    #     created_date = pd.to_datetime(row['created'])
+
+    #     # Obtenir la première date de création du projet (i.e. plus ancienne)
+    #     project_changes = self.df_changes[self.df_changes['project'] == row['project']].copy()
+    #     project_changes['created'] = pd.to_datetime(project_changes['created'])
+        
+    #     project_creation_date = project_changes['created'].min()
+
+    #     return (created_date - project_creation_date).total_seconds()
     
     def count_project_changes(self, row: pd.Series) -> int:
         """Count number of changes in the project before this change."""
@@ -374,50 +428,89 @@ class ChangeMetricsCalculator:
     
     def process_metrics(self, attr: str) -> str:
         """Process and calculate a specific metric."""
-        print(f'Processing {attr} metric started...')
+        logger.info(f'Processing {attr} metric started...')
         main_dev_attr = ['project', 'created', 'changed_files', 'owner_account_id', 'status']
         
         metric_processors = {
             # Project metrics
-            'project_age': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_project_age, axis=1)}),
-            'project_changes_count': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_project_changes, axis=1)}),
-            'whole_changes_count': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_whole_changes, axis=1)}),
-            'cross_project_changes': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_cross_project_changes, axis=1)}),
-            'within_project_changes': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_within_project_changes, axis=1)}),
-            'whole_within_project_changes': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_whole_within_project_changes, axis=1)}),
-            'last_mth_dep_proj_nbr': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_last_x_days_dependent_projects, args=(30,), axis=1)}),
-            'avg_cro_proj_nbr': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_avg_cro_proj_nbr, axis=1)}),
-            'last_mth_cro_proj_nbr': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_last_x_days_cross_project_changes, args=(30,), axis=1)}),
-            'last_mth_mod_uniq_proj_nbr': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_last_x_days_modified_unique_projects, args=(30,), axis=1)}),
+            # 'project_age': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_project_age, axis=1)}),
+            # 'project_changes_count': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_project_changes, axis=1)}),
+            # 'whole_changes_count': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_whole_changes, axis=1)}),
+            # 'cross_project_changes': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_cross_project_changes, axis=1)}),
+            # 'within_project_changes': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_within_project_changes, axis=1)}),
+            # 'whole_within_project_changes': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_whole_within_project_changes, axis=1)}),
+            # 'last_mth_dep_proj_nbr': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_last_x_days_dependent_projects, args=(30,), axis=1)}),
+            # 'avg_cro_proj_nbr': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_avg_cro_proj_nbr, axis=1)}),
+            # 'last_mth_cro_proj_nbr': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_last_x_days_cross_project_changes, args=(30,), axis=1)}),
+            # 'last_mth_mod_uniq_proj_nbr': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_last_x_days_modified_unique_projects, args=(30,), axis=1)}),
             
+            # # Developer metrics
+            # 'project_changes_owner': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_project_changes_owner, axis=1)}),
+            # 'whole_changes_owner': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_whole_changes_owner, axis=1)}),
+            # 'projects_contributed': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_projects_contributed, axis=1)}),
+            # 'projects_changes_deps': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_projects_changes_deps, axis=1)}),
+            # 'whole_changes_deps': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_whole_changes_deps, axis=1)}),
+            # 'cross_project_changes_owner': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_cross_pro_changes_owner, axis=1)}),
+            # 'within_project_changes_owner': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_within_pro_changes_owner, axis=1)}),
+            # 'ratio_dep_chan_owner': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr + ['number']].apply(self.count_ratio_dep_chan_owner, axis=1)}),
+            
+            ######### metrics processed successfully #################
+            # 'project_age': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_project_age, axis=1)),
+            'project_changes_count': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_project_changes, axis=1)),
+            'whole_changes_count': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_whole_changes, axis=1)),
+            # 'cross_project_changes': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_cross_project_changes, axis=1)),
+            # 'within_project_changes': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_within_project_changes, axis=1)),
+            'whole_within_project_changes': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_whole_within_project_changes, axis=1)),
+            # 'last_mth_dep_proj_nbr': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_last_x_days_dependent_projects, args=(30,), axis=1)),
+            'avg_cro_proj_nbr': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_avg_cro_proj_nbr, axis=1)),
+            # 'last_mth_cro_proj_nbr': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_last_x_days_cross_project_changes, args=(30,), axis=1)),
+            'last_mth_mod_uniq_proj_nbr': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_last_x_days_modified_unique_projects, args=(30,), axis=1)),
+
             # Developer metrics
-            'project_changes_owner': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_project_changes_owner, axis=1)}),
-            'whole_changes_owner': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_whole_changes_owner, axis=1)}),
-            'projects_contributed': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_projects_contributed, axis=1)}),
-            'projects_changes_deps': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_projects_changes_deps, axis=1)}),
-            'whole_changes_deps': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_whole_changes_deps, axis=1)}),
-            'cross_project_changes_owner': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_cross_pro_changes_owner, axis=1)}),
-            'within_project_changes_owner': lambda: self.df_changes.assign(**{attr: self.df_changes.apply(self.count_within_pro_changes_owner, axis=1)}),
-            'ratio_dep_chan_owner': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr + ['number']].apply(self.count_ratio_dep_chan_owner, axis=1)}),
+            'project_changes_owner': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_project_changes_owner, axis=1)),
+            'whole_changes_owner': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_whole_changes_owner, axis=1)),
+            'projects_contributed_owner': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_projects_contributed, axis=1)),
+            'projects_changes_deps': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_projects_changes_deps, axis=1)),
+            'whole_changes_deps': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_whole_changes_deps, axis=1)),
+            'cross_project_changes_owner': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_cross_pro_changes_owner, axis=1)),
+            'within_project_changes_owner': lambda: self.df_changes.__setitem__(attr, self.df_changes.apply(self.count_within_pro_changes_owner, axis=1)),
+            'ratio_dep_chan_owner': lambda: self.df_changes.__setitem__(attr, self.df_changes[main_dev_attr + ['number']].apply(self.count_ratio_dep_chan_owner, axis=1)),
+
             
             # Change metrics
-            'code_churn': lambda: self.df_changes.assign(code_churn=self.df_changes['insertions'] + self.df_changes['deletions']),
+          
+            'insertions': lambda: self.df_changes.assign(insertions=self.df_changes["insertions"]),
+            'deletions': lambda: self.df_changes.assign(deletions=self.df_changes["deletions"]),
+            # 'code_churn': lambda: self.df_changes.__setitem__('code_churn', self.df_changes['insertions'] + self.df_changes['deletions']),
+
             
             # File metrics
-            'num_file_types': lambda: self.df_changes.assign(num_file_types=self.df_changes['changed_files'].map(self.count_num_file_types)),
-            'num_directory_files': lambda: self.df_changes.assign(num_directory_files=self.df_changes['changed_files'].map(self.count_num_directory_files)),
-            'num_dev_modified_files': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr].apply(self.count_num_dev_modified_files, axis=1)}),
-            'avg_num_dev_modified_files': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr].apply(self.count_avg_num_dev_modified_files, axis=1)}),
-            'num_file_changes': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr + ['number']].apply(self.count_num_file_changes, axis=1)}),
-            'num_merged_changes': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr + ['number']].apply(self.count_type_changes, args=('MERGED',), axis=1)}),
-            'num_abandoned_changes': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr + ['number']].apply(self.count_type_changes, args=('ABANDONED',), axis=1)}),
-            'num_mod_file_dep_cha': lambda: self.process_complex_metric(main_dev_attr, attr),
+            'num_file_types': lambda: self.df_changes.__setitem__('num_file_types',self.df_changes['changed_files'].map(self.count_num_file_types)),
+            # 'num_directory_files': lambda: self.df_changes.__setitem__('num_directory_files', self.df_changes['changed_files'].map(self.count_num_directory_files)),
+            ## 'num_dev_modified_files': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr].apply(self.count_num_dev_modified_files, axis=1)}),
+            ## 'avg_num_dev_modified_files': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr].apply(self.count_avg_num_dev_modified_files, axis=1)}),
+            ## 'num_file_changes': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr + ['number']].apply(self.count_num_file_changes, axis=1)}),
+            ## 'num_merged_changes': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr + ['number']].apply(self.count_type_changes, args=('MERGED',), axis=1)}),
+            ## 'num_abandoned_changes': lambda: self.df_changes.assign(**{attr: self.df_changes[main_dev_attr + ['number']].apply(self.count_type_changes, args=('ABANDONED',), axis=1)}),
+            'num_dev_modified_files': lambda: self.df_changes.__setitem__(attr, self.df_changes[main_dev_attr].apply(self.count_num_dev_modified_files, axis=1)),
+            'avg_num_dev_modified_files': lambda: self.df_changes.__setitem__(attr, self.df_changes[main_dev_attr].apply(self.count_avg_num_dev_modified_files, axis=1)),
+            'num_file_changes': lambda: self.df_changes.__setitem__(attr, self.df_changes[main_dev_attr + ['number']].apply(self.count_num_file_changes, axis=1)),
+            'num_merged_changes': lambda: self.df_changes.__setitem__(attr, self.df_changes[main_dev_attr + ['number']].apply(self.count_type_changes, args=('MERGED',), axis=1)),
+            'num_abandoned_changes': lambda: self.df_changes.__setitem__(attr, self.df_changes[main_dev_attr + ['number']].apply(self.count_type_changes, args=('ABANDONED',), axis=1)),
+
+            
+            # 'num_mod_file_dep_cha': lambda: self.process_complex_metric(main_dev_attr, attr),
             
             # Text metrics
-            'subject_length': lambda: self.df_changes.assign(**{attr: self.df_changes['subject'].map(len)}),
-            'description_length': lambda: self.df_changes.assign(**{attr: self.df_changes['commit_message'].map(self.count_desc_length)}),
-            'subject_word_count': lambda: self.df_changes.assign(**{attr: self.df_changes['subject'].map(self.count_words)}),
-            'description_word_count': lambda: self.df_changes.assign(**{attr: self.df_changes['commit_message'].map(self.count_words)}),
+            # 'subject_length': lambda: self.df_changes.assign(**{attr: self.df_changes['subject'].map(len)}),
+            # 'description_length': lambda: self.df_changes.assign(**{attr: self.df_changes['commit_message'].map(self.count_desc_length)}),
+            # 'subject_word_count': lambda: self.df_changes.assign(**{attr: self.df_changes['subject'].map(self.count_words)}),
+            'subject_length': lambda: self.df_changes.__setitem__(attr, self.df_changes['subject'].map(len)),
+            # 'description_length': lambda: self.df_changes.__setitem__(attr, self.df_changes['commit_message'].map(self.count_desc_length)),
+            'subject_word_count': lambda: self.df_changes.__setitem__(attr, self.df_changes['subject'].map(self.count_words)),
+
+           
+            # 'description_word_count': lambda: self.df_changes.__setitem__(attr, self.df_changes['commit_message'].map(self.count_words)),
         }
         
         if attr in self.DESCRIPTION_METRICS:
@@ -429,7 +522,7 @@ class ChangeMetricsCalculator:
             raise ValueError(f"Unknown metric: {attr}")
         
         self.save_metric(attr, main_dev_attr)
-        print(f'{attr}.csv file saved successfully...')
+        logger.info(f'{attr}.csv file saved successfully...')
         return attr
     
     def process_complex_metric(self, main_dev_attr: List[str], attr: str) -> None:
@@ -441,7 +534,7 @@ class ChangeMetricsCalculator:
             ]
             for future in concurrent.futures.as_completed(results):
                 future.result()
-                print(f'{future.result()} ID processed successfully...')
+                logger.info(f'{future.result()} ID processed successfully...')
     
     def save_metric(self, attr: str, main_dev_attr: List[str]) -> None:
         """Save the calculated metric to a CSV file."""
@@ -456,7 +549,7 @@ class ChangeMetricsCalculator:
 
 def main():
     """Main function to execute the metrics calculation."""
-    print(f"Script {__file__} started...")
+    logger.info(f"Script {__file__} started...")
     start_date, start_header = hpr.generate_date("This script started at")
     
     calculator = ChangeMetricsCalculator()
@@ -469,20 +562,27 @@ def main():
     )
     
     # Process first metric sequentially
-    calculator.process_metrics(metrics[0])
+    # calculator.process_metrics(metrics[0])
     
     # Process remaining metrics in parallel
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = [executor.submit(calculator.process_metrics, m) for m in metrics[1:]]
-        for future in concurrent.futures.as_completed(results):
-            attr = future.result()
-            print(f'{attr} metric processed successfully...')
+    # with concurrent.futures.ProcessPoolExecutor() as executor:
+    #     results = [executor.submit(calculator.process_metrics, m) for m in metrics[1:]]
+    #     for future in concurrent.futures.as_completed(results):
+    #         attr = future.result()
+    #         logger.info(f'{attr} metric processed successfully...')
+            
+    for metric in metrics:
+        calculator.process_metrics(metric)
+        logger.info(f'{metric} metric processed successfully...')
+        
     
     end_date, end_header = hpr.generate_date("This script ended at")
-    print(start_header)
-    print(end_header)
+    logger.info(start_header)
+    logger.info(end_header)
     hpr.diff_dates(start_date, end_date)
-    print(f"Script {__file__} ended\n")
+    logger.info(f"Script {__file__} ended\n")
 
 if __name__ == '__main__':
     main()
+    
+    

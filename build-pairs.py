@@ -9,12 +9,18 @@ from sklearn.model_selection import TimeSeriesSplit
 from imblearn.under_sampling import RandomUnderSampler
 from utils import helpers as hpr
 import concurrent.futures
+from db.db_manager import MongoManager
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 from logging_config import get_logger
 
 df_changes = None
 target_numbers = None
 df_dependencies = None
+changes_collection = 'changes'
+deps_collection = 'dependencies2'
+mongo_manager = MongoManager()
 
 logger = get_logger()
 
@@ -37,6 +43,8 @@ def assign_past_changes(row):
 
 def build_pairs(target, fold):
     logger.info(f'******** Started building pairs of changes for Fold {fold}')
+    mongo_manager = MongoManager()
+    df_changes = mongo_manager.read_filtered_changes()
     X = df_changes.loc[df_changes['number'].isin(target), ['number', 'created']]
     X = X.rename(columns={'number': 'Target'})
     X['Source'] = X.apply(assign_past_changes, axis=1)
@@ -64,14 +72,15 @@ def build_pairs(target, fold):
         suffixes=('_target', '_source')
     )
 
-    X['related'].fillna(0, inplace=True)
+    # X['related'].fillna(0, inplace=True)
+    X['related'] = X['related'].fillna(0)
     X['related'] = X['related'].map(int)
 
     # X.drop(columns=['number', 'owner_account_id', 'project'], inplace=True)
 
     return X[['Source', 'Target', 'related']]
 
-def process_folds(fold, train_idx, test_idx):
+def process_folds(fold, train_idx, test_idx,target_numbers):
     train_numbers = target_numbers[train_idx]
     test_numbers = target_numbers[test_idx]
 
@@ -128,15 +137,17 @@ def select_representative_sample(data, seed=42, confidence_level=0.95, margin_of
     return random.sample(data, sample_size)
 
 def init_global_vars():
-    df_dependencies_loc = pd.read_csv(osp.join(".", "Files", "source_target_evolution_clean.csv"))
+    # df_dependencies_loc = pd.read_csv(osp.join(".", "Files", "source_target_evolution_clean.csv"))
+    df_dependencies_loc = mongo_manager.read_all(deps_collection)
     df_dependencies_loc.dropna(subset=["Source_status", "Target_status"], inplace=True)
     df_dependencies_loc = df_dependencies_loc.loc[(df_dependencies_loc['Source_status']!='NEW')&(df_dependencies_loc['Target_status']!='NEW')]
     df_dependencies_loc['related'] = 1
 
-    df_changes_loc = hpr.combine_openstack_data(changes_path="/Changes3/")
+    # df_changes_loc = hpr.combine_openstack_data(changes_path="/Changes3/")
+    df_changes_loc = mongo_manager.read_filtered_changes()
     min_date = datetime(2014, 1, 1)
     df_changes_loc = df_changes_loc[(df_changes_loc['status']!='NEW')&(df_changes_loc['created']>=min_date)]
-    df_changes_loc = df_changes_loc.drop_duplicates(subset=['change_id'], keep='last')
+    # df_changes_loc = df_changes_loc.drop_duplicates(subset=['change_id'], keep='last')
 
 
     # df_deps_red = df_dependencies_loc[['when_identified']]
@@ -177,8 +188,18 @@ if __name__ == '__main__':
 
     tscv = TimeSeriesSplit(n_splits = 10)
         
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = [executor.submit(process_folds, fold, train_idx, test_idx) for fold, (train_idx, test_idx) in enumerate(tscv.split(target_numbers))]
+    # with concurrent.futures.ProcessPoolExecutor() as executor:
+    #     results = [executor.submit(process_folds, fold, train_idx, test_idx) for fold, (train_idx, test_idx) in enumerate(tscv.split(target_numbers))]
+
+    #     for out in concurrent.futures.as_completed(results):
+    #         logger.info(out.result())
+            
+            
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = [
+            executor.submit(process_folds, fold, train_idx, test_idx, target_numbers)
+            for fold, (train_idx, test_idx) in enumerate(tscv.split(target_numbers))
+        ]
 
         for out in concurrent.futures.as_completed(results):
             logger.info(out.result())

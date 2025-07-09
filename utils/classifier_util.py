@@ -15,6 +15,11 @@ from sklearn.linear_model import LogisticRegression
 import xgboost as xgb
 
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+
+import nltk
+
+# Assure que la bonne ressource est bien installée
+nltk.download('punkt', quiet=True)  # silencieux
 from nltk.tokenize import word_tokenize
 
 from utils import helpers as hpr
@@ -217,10 +222,20 @@ def calc_cosine_similarity(embed):
  
     return cosine
 
-def to_embedding(x, model):
-    if type(x) == float:
-        return []
-    return model.infer_vector(word_tokenize(x))
+# def to_embedding(x, model):
+#     if type(x) == float:
+#         return []
+#     return model.infer_vector(word_tokenize(x))
+def to_embedding(text, model):
+    try:
+        if not isinstance(text, str):
+            text = str(text)
+        tokens = word_tokenize(text.lower())  # ← Important
+        return model.infer_vector(tokens)
+    except Exception as e:
+        print(f"[Embedding Error] input={text} | error={e}")
+        return None
+        
 
 
 def compute_embdedding_similarity(df_changes, model, X, attr, label):
@@ -228,13 +243,19 @@ def compute_embdedding_similarity(df_changes, model, X, attr, label):
         df_changes['number'].isin(hpr.flatten_list(X[['Source', 'Target']].values)),
         ['number', attr]
     ]
-
+    print(f"X columns: {X.columns}")
+    train_test_changes = train_test_changes[train_test_changes[attr].notnull()]
+    train_test_changes[attr] = train_test_changes[attr].astype(str)
+    model = Doc2Vec.load(f"../doc2vec/0_{attr}")
     ### Compute embedding of change's description
-    # print(train_test_changes.iloc[0, :])
-    train_test_changes[f'{label}_embed'] = train_test_changes[attr].apply(to_embedding, args=(model,))
+    print(train_test_changes.iloc[0, :])
+    train_test_changes = train_test_changes.dropna(subset=[attr])
+    # train_test_changes[f'{label}_embed'] = train_test_changes[attr].apply(to_embedding, args=(model,))
+    train_test_changes[f'{label}_embed'] = train_test_changes[attr].apply(lambda x: to_embedding(x, model))
+
     # train_test_changes['add_lines_embed'] = train_test_changes['added_lines'].map(lambda x: model.infer_vector(word_tokenize(x)))
     # train_test_changes['del_lines_embed'] = train_test_changes['deleted_lines'].map(lambda x: model.infer_vector(word_tokenize(x)))
-
+    X.drop(columns=['number'], errors='ignore', inplace=True)
     X = pd.merge(
         left=X, 
         right=train_test_changes, 
@@ -249,9 +270,10 @@ def compute_embdedding_similarity(df_changes, model, X, attr, label):
         left_on='Target', 
         right_on='number', 
         how='left',
-        suffixes=('_target', '_source')
+        suffixes=('_target', '_drop')  # pour éviter 'number_target'
     )
-    
+    X.drop(columns=['number'], errors='ignore', inplace=True)  # éviter duplications
+        
     # Compute cosine similarity between the embeddings of source and target changes
     X[f'{label}_sim'] = X[[f'{label}_embed_source', f'{label}_embed_target']].apply(calc_cosine_similarity, axis=1)
     # X['add_lines_sim'] = X[['add_lines_embed_source', 'add_lines_embed_target']].apply(calc_cosine_similarity, axis=1)
@@ -290,8 +312,12 @@ def compute_shared_desc_tokens(row, changes_description):
     if not desc_src or not desc_trg:
         return 0
     
-    desc_src = set(word_tokenize(changes_description[row['Source']]))
-    desc_trg = set(word_tokenize(changes_description[row['Target']]))
+    # desc_src = set(word_tokenize(changes_description[row['Source']]))
+    desc_src = set(nltk.word_tokenize(str(changes_description[row['Source']])))
+
+    # desc_trg = set(word_tokenize(changes_description[row['Target']]))
+    desc_src = set(nltk.word_tokenize(str(changes_description[row['Target']])))
+
     intersect = len(desc_src.intersection(desc_trg))
     union = len(desc_src.union(desc_trg))
     return intersect/union if union != 0 else 0
