@@ -128,9 +128,9 @@ class OpenStackDataCollector:
         
         return changes
     
-    def get_change_details(self, change_id: str):
+    def get_change_details(self, number: int):
         """Récupère les détails d'un changement depuis l'API Gerrit."""
-        url = 'https://review.opendev.org/changes/{}/detail/?o={}&o={}&o={}&o={}'.format(change_id , "CURRENT_FILES", "MESSAGES", "CURRENT_COMMIT", "CURRENT_REVISION")
+        url = 'https://review.opendev.org/changes/{}/detail/?o={}&o={}&o={}&o={}'.format(number , "CURRENT_FILES", "MESSAGES", "CURRENT_COMMIT", "CURRENT_REVISION")
         try:
             response = requests.get(url)
             # print('response for change detail: ',response.text)

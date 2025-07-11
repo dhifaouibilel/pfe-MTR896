@@ -31,6 +31,9 @@ class MongoManager:
     def find_change_by_id(self, change_id: str):
         return self.db.changes.find_one({"_id": change_id})
     
+    def find_change_by_number(self, number: int):
+        return self.db.changes.find_one({"number": number})
+    
     def get_last_change(self):
         return self.db.changes.find_one(sort=[("created", DESCENDING)])
 
@@ -45,6 +48,8 @@ class MongoManager:
             name="owner_created_index"
         )
         self.db.changes.create_index([("created", 1), ("number", 1)])
+        
+        self.db.metrics.create_index([("created", 1)])
 
         # self.db.changes.create_index("number")
         # self.db.changes.create_index("change_id")
@@ -219,6 +224,43 @@ class MongoManager:
 
         logger.info("Filtered collection 'changes' loaded successfully.")
         return df
+    
+    def get_metrics_by_change_numbers(self, change_numbers: list) -> pd.DataFrame:
+        """
+        Récupère les métriques pour une liste donnée de numéros de changement.
+
+        Args:
+            change_numbers (list): Liste des numéros de changement (Gerrit change numbers).
+
+        Returns:
+            pd.DataFrame: DataFrame contenant les métriques correspondantes.
+        """
+        collection = getattr(self, 'metrics', None)
+        logger.info(f"Loading metrics for all changes number from metrics collection")
+        query = {"number": {"$in": change_numbers}}
+        cursor = collection.find(query, {"_id":0})
+        logger.info("Filtered collection 'metrics' loaded successfully.")
+
+        return pd.DataFrame(list(cursor))
+    
+    def get_change_metrics_by_number(self, number: int) -> Optional[Dict]:
+        """
+        Récupère un document depuis la collection 'metrics' en fonction de 'number' de changement.
+        """
+    
+        try:
+            collection = self.db['metrics']
+            metrics = collection.find_one({'number': number}, {"_id":0})
+            
+            if metrics:
+                logger.info(f"✅ Document trouvé pour number={number}")
+            else:
+                logger.warning(f"❌ Aucun document trouvé pour number={number}")
+            return metrics
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération du document avec number={number}: {e}")
+            return None
+        
     def get_change_by_number(self, number: int) -> Optional[Dict]:
         """
         Récupère un document depuis la collection 'changes' en fonction de son 'number'.

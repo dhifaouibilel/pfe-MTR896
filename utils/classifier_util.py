@@ -23,7 +23,7 @@ nltk.download('punkt', quiet=True)  # silencieux
 from nltk.tokenize import word_tokenize
 
 from utils import helpers as hpr
-
+_doc2vec_cache = {}
 
 def compute_pctg_cross_project_changes(row):
     dominator = row['cross_project_changes'] + row['within_project_changes']
@@ -239,57 +239,84 @@ def to_embedding(text, model):
 
 
 def compute_embdedding_similarity(df_changes, model, X, attr, label):
+    global _doc2vec_cache
     train_test_changes = df_changes.loc[
         df_changes['number'].isin(hpr.flatten_list(X[['Source', 'Target']].values)),
         ['number', attr]
     ]
-    print(f"X columns: {X.columns}")
+    # print(f"X columns: {X.columns}")
     train_test_changes = train_test_changes[train_test_changes[attr].notnull()]
     train_test_changes[attr] = train_test_changes[attr].astype(str)
-    model = Doc2Vec.load(f"../doc2vec/0_{attr}")
+    # model = Doc2Vec.load(f"../doc2vec/0_{attr}")
+    # Charger le modèle Doc2Vec depuis le cache si disponible
+    if attr not in _doc2vec_cache:
+        _doc2vec_cache[attr] = Doc2Vec.load(f"../doc2vec/0_{attr}")
+    model = _doc2vec_cache[attr]
     ### Compute embedding of change's description
-    print(train_test_changes.iloc[0, :])
+    # print(train_test_changes.iloc[0, :])
     train_test_changes = train_test_changes.dropna(subset=[attr])
     # train_test_changes[f'{label}_embed'] = train_test_changes[attr].apply(to_embedding, args=(model,))
     train_test_changes[f'{label}_embed'] = train_test_changes[attr].apply(lambda x: to_embedding(x, model))
 
     # train_test_changes['add_lines_embed'] = train_test_changes['added_lines'].map(lambda x: model.infer_vector(word_tokenize(x)))
     # train_test_changes['del_lines_embed'] = train_test_changes['deleted_lines'].map(lambda x: model.infer_vector(word_tokenize(x)))
+    # X.drop(columns=['number'], errors='ignore', inplace=True)
+    # X = pd.merge(
+    #     left=X, 
+    #     right=train_test_changes, 
+    #     left_on='Source', 
+    #     right_on='number', 
+    #     how='left',
+    #     suffixes=('_target', '_source')
+    # )
+    # X = pd.merge(
+    #     left=X, 
+    #     right=train_test_changes, 
+    #     left_on='Target', 
+    #     right_on='number', 
+    #     how='left',
+    #     suffixes=('_target', '_drop')  # pour éviter 'number_target'
+    # )
+    # X.drop(columns=['number'], errors='ignore', inplace=True)  # éviter duplications
+    source_embeds = train_test_changes.rename(columns={f'{label}_embed': f'{label}_embed_source'})
+    target_embeds = train_test_changes.rename(columns={f'{label}_embed': f'{label}_embed_target'})
+
+    # Merge avec source
+    X = pd.merge(
+        left=X,
+        right=source_embeds[['number', f'{label}_embed_source']],
+        left_on='Source',
+        right_on='number',
+        how='left'
+    )
     X.drop(columns=['number'], errors='ignore', inplace=True)
+
+    # Merge avec target
     X = pd.merge(
-        left=X, 
-        right=train_test_changes, 
-        left_on='Source', 
-        right_on='number', 
-        how='left',
-        suffixes=('_target', '_source')
+        left=X,
+        right=target_embeds[['number', f'{label}_embed_target']],
+        left_on='Target',
+        right_on='number',
+        how='left'
     )
-    X = pd.merge(
-        left=X, 
-        right=train_test_changes, 
-        left_on='Target', 
-        right_on='number', 
-        how='left',
-        suffixes=('_target', '_drop')  # pour éviter 'number_target'
-    )
-    X.drop(columns=['number'], errors='ignore', inplace=True)  # éviter duplications
-        
-    # Compute cosine similarity between the embeddings of source and target changes
+    X.drop(columns=['number'], errors='ignore', inplace=True)
+        # Compute cosine similarity between the embeddings of source and target changes
     X[f'{label}_sim'] = X[[f'{label}_embed_source', f'{label}_embed_target']].apply(calc_cosine_similarity, axis=1)
     # X['add_lines_sim'] = X[['add_lines_embed_source', 'add_lines_embed_target']].apply(calc_cosine_similarity, axis=1)
     # X['del_lines_sim'] = X[['del_lines_embed_source', 'del_lines_embed_target']].apply(calc_cosine_similarity, axis=1)
 
     # X['shared_tokens'] = X[['changed_files_source', 'changed_files_target']].apply(compute_shared_tokens, axis=1)
    
-    X.drop(columns=[
-            f'{label}_embed_source', 
-            f'{label}_embed_target', 
-            f'{attr}_source', 
-            f'{attr}_target',
-            'number_target', 
-            'number_source'
-        ], 
-    inplace=True)
+    # X.drop(columns=[
+    #         f'{label}_embed_source', 
+    #         f'{label}_embed_target', 
+    #         f'{attr}_source', 
+    #         f'{attr}_target',
+    #         'number_target', 
+    #         'number_source'
+    #     ], 
+    # inplace=True)
+    X.drop(columns=[f'{label}_embed_source', f'{label}_embed_target'], errors='ignore', inplace=True)
 
     # X['desc_sim'].to_csv('test.csv', index=None)
     # pd.DataFrame({'col': X.columns.tolist()}).to_csv('test.csv', index=None)

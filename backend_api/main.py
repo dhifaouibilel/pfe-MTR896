@@ -12,6 +12,8 @@ import json
 from logging_config import get_logger
 from db.db_manager import MongoManager
 from collect_data import OpenStackDataCollector
+from model_loader import load_model_1, load_model_2  # Assure-toi d’avoir ces fonctions
+from model_predictor import ModelPredictor
 # from gerrit.gerrit_client import get_change_details, get_changes_between_dates
 # from features.extractor import extract_features_for_new_changes
 # from metrics_model2 import generate_pair_metrics  # À adapter selon ton fichier
@@ -24,8 +26,15 @@ mongo = MongoManager()
 metric_service = MetricService()
 builder = PairMetricsService()
 
+# Créer une instance du prédicteur
+first_model = load_model_1()
+second_model = load_model_2()
+predictor_m1 = ModelPredictor(first_model, model_type="m1")
+predictor_m2 = ModelPredictor(second_model, model_type="m2")
+
 class ChangeRequest(BaseModel):
-    change_id: str
+    # change_id: str
+    change_number: int
 
 class ChangeResponse(BaseModel):
     message: str
@@ -34,20 +43,15 @@ class ChangeResponse(BaseModel):
 @app.post("/generate-metrics")
 async def generate_metrics(request: ChangeRequest):
     try:
-        change_id = request.change_id
+        change_number = int(request.change_number)
         # print(change_id)
         # Vérifier si le changement est déjà dans la base de données
-        existing_change = mongo.find_change_by_id(change_id)
+        existing_change = mongo.find_change_by_number(change_number)
 
-        if existing_change:
-            # Générer les métriques de paires (Model 2)
-            logger.info('Générer les métriques de paires')
-            # generate_pair_metrics(request.change_id)
-            # return ChangeResponse(message="Métriques de paires générées.", pairs_generated=True)
-
-        else:
+        if not existing_change:
+            
             # Récupérer les détails du changement depuis Gerrit
-            change_data = data_collector.get_change_details(str(change_id))
+            change_data = data_collector.get_change_details(change_number)
             # print('change detail: ', change_data)
             if not change_data:
                 raise HTTPException(status_code=404, detail="Changement introuvable dans Gerrit")
@@ -77,9 +81,22 @@ async def generate_metrics(request: ChangeRequest):
             print(saved_change['number'])
             # Calculer les métriques pour le nouvel changement (Model 1)
             metrics = metric_service.generate_metrics_for_change(saved_change)
-            pair_metrics = builder.build_pairs_metrics_for_change(saved_change['number'])
-            
+        else:
+            print(f"change with number {change_number} is exist in DB")
+            metrics = mongo.get_change_metrics_by_number(change_number)
+        
+        prediction_m1 = predictor_m1.predict(metrics)
+        print(f"la prediction de premier model est : {prediction_m1}")
+        if prediction_m1:
+            pair_metrics = builder.build_pairs_metrics_for_change(change_number)
+            possible_deps_numbers = builder.get_possible_deps_numbers()
             logger.info(f'pair metrics: {pair_metrics}')
+            prediction_m2 = predictor_m2.predict(pair_metrics)
+            predicted_pairs = predictor_m2.filter_predicted_pairs(possible_deps_numbers, prediction_m2)
+            print(f"les paires predictées sont : {predicted_pairs}, avec length {len(predicted_pairs)}")
+        
+        else: 
+            print(f"le changement avec le number = {change_number} y'a pas de dependence avec un autre changement")
             
 
             # return ChangeResponse(message="Métriques de nouveaux changements générées.", pairs_generated=False)

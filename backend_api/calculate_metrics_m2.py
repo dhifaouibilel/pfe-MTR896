@@ -8,8 +8,7 @@ import ast
 import re
 from datetime import timedelta
 from typing import List, Dict, Set, Optional, Union
-
-
+import swifter
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from db.db_manager import MongoManager
@@ -32,6 +31,7 @@ class PairMetricsService:
         self.changes_description = None
         self.added_lines = None
         self.deleted_lines = None
+        self.possible_deps_numbers = []
         self.changes_collection = 'changes'
         self.metrics_collection = 'metrics'
         self.deps_collection = 'dependencies2'
@@ -139,6 +139,7 @@ class PairMetricsService:
         """
         # Process OpenStack data
         df_changes = self.mongo_manager.read_filtered_changes(num_docs=1000)
+        self.possible_deps_numbers = df_changes["number"].tolist()
         # Vérifie si le changement cible est présent, sinon l’ajoute
         if target_change_number not in df_changes['number'].values:
             self.logger.warning(f"Target change {target_change_number} not in df_changes — fetching individually.")
@@ -166,16 +167,17 @@ class PairMetricsService:
         df_changes['commit_message'] = df_changes['commit_message'].map(hpr.preprocess_change_description)
 
         # Combine features
+        change_numbers = df_changes['number'].tolist()
         # df_features = self.combine_features()
-        df_features = self.mongo_manager.read_all(self.metrics_collection)
-        # df_features = pd.merge(
-        #     left=df_features, 
-        #     right=df_changes[['number', 'created', 'project', 'owner_account_id', 'reviewers']], 
-        #     left_on='number', 
-        #     right_on='number', 
-        #     how='inner',
-        #     suffixes=('_source', '_target')
-        # )
+        # df_features = self.mongo_manager.read_all(self.metrics_collection)
+        df_features = self.mongo_manager.get_metrics_by_change_numbers(change_numbers)
+        df_features = pd.merge(
+            left=df_features, 
+            right=df_changes[['number', 'created', 'project', 'owner_account_id', 'reviewers']], 
+            left_on='number', 
+            right_on='number', 
+            how='inner',
+        )
         
 
         # Sécuriser reviewers si disponible
@@ -213,7 +215,8 @@ class PairMetricsService:
         self.df = df_features
         
 
-    
+    def get_possible_deps_numbers(self):
+        return self.possible_deps_numbers
 
     def combine_features(self):
         """Combine metrics from multiple files into a single dataframe"""
@@ -237,9 +240,9 @@ class PairMetricsService:
         df['project_age'] /= (60 * 60 * 24)  # Convert to days
 
         # Calculate percentages
-        df['pctg_cross_project_changes'] = df.apply(self.compute_pctg_cross_project_changes, axis=1)
+        df['pctg_cross_project_changes'] = df.swifter.apply(self.compute_pctg_cross_project_changes, axis=1)
         # df['pctg_whole_cross_project_changes'] = df.apply(self.compute_pctg_whole_cross_project_changes, axis=1)
-        df['pctg_cross_project_changes_owner'] = df.apply(self.compute_ptg_cross_project_changes_owner, axis=1)
+        df['pctg_cross_project_changes_owner'] = df.swifter.apply(self.compute_ptg_cross_project_changes_owner, axis=1)
         
         return df
     
@@ -390,41 +393,42 @@ class PairMetricsService:
 
             # Renommer 'number_source' en 'Source' (clé primaire)
             source_df.rename(columns={'number_source': 'Source'}, inplace=True)
+            source_df.rename(columns={'number_target': 'Target'}, inplace=True)
 
-            source_df["Target"] = change_number
-            source_df["created_target"] = target_change["created"]
-            source_df["project_target"] = target_change["project"]
-            source_df["owner_account_id_target"] = target_change["owner_account_id"]
+            # source_df["Target"] = change_number
+            # source_df["created_target"] = target_change["created"]
+            # source_df["project_target"] = target_change["project"]
+            # source_df["owner_account_id_target"] = target_change["owner_account_id"]
 
             # Renommer pour correspondre aux anciennes conventions
             X = source_df.copy()
 
-            X["Source_date"] = X["created_source"]
-            X["Target_date"] = X["created_target"]
-            X["Source_author"] = X["owner_account_id_source"]
-            X["Target_author"] = X["owner_account_id_target"]
+            # X["Source_date"] = X["created_source"]
+            # X["Target_date"] = X["created_target"]
+            # X["Source_author"] = X["owner_account_id_source"]
+            # X["Target_author"] = X["owner_account_id_target"]
             X.rename(columns={
-                # "owner_account_id_source": "Source_author",
-                # "owner_account_id_target": "Target_author",
-                # "created_source": "Source_date",
-                # "created_target": "Target_date"
+                "owner_account_id_source": "Source_author",
+                "owner_account_id_target": "Target_author",
+                "created_source": "Source_date",
+                "created_target": "Target_date",
                 # "project_age": "project_age_source",
                 "project_source": "Source_repo",
                 "project_target": "Target_repo",
             }, inplace=True)
 
             # Calcul des métriques
-            X['changed_files_overlap'] = X.apply(self.count_changed_files_overlap, axis=1)
-            X['cmn_dev_pctg'] = X.apply(self.compute_common_dev_pctg, axis=1)
-            X['num_shrd_file_tkns'] = X[['Source', 'Target']].apply(
+            X['changed_files_overlap'] = X.swifter.apply(self.count_changed_files_overlap, axis=1)
+            X['cmn_dev_pctg'] = X.swifter.apply(self.compute_common_dev_pctg, axis=1)
+            X['num_shrd_file_tkns'] = X[['Source', 'Target']].swifter.apply(
                 clas_util.compute_filenames_shared_tokens, args=(self.changed_files,), axis=1
             )
-            X['num_shrd_desc_tkns'] = X[['Source', 'Target']].apply(
+            X['num_shrd_desc_tkns'] = X[['Source', 'Target']].swifter.apply(
                 clas_util.compute_shared_desc_tokens, args=(self.changes_description,), axis=1
             )
-            X['dev_in_src_change_nbr'] = X.apply(self.count_dev_in_src_change, axis=1)
-            X['src_trgt_co_changed_nbr'] = X.apply(self.count_src_trgt_co_changed, axis=1)
-            X['is_cross'] = X.apply(self.is_pair_cross, axis=1)
+            X['dev_in_src_change_nbr'] = X.swifter.apply(self.count_dev_in_src_change, axis=1)
+            X['src_trgt_co_changed_nbr'] = X.swifter.apply(self.count_src_trgt_co_changed, axis=1)
+            X['is_cross'] = X.swifter.apply(self.is_pair_cross, axis=1)
             X = clas_util.compute_embdedding_similarity(
                 df_changes=self.desc_df,
                 model=Doc2Vec,
@@ -440,6 +444,7 @@ class PairMetricsService:
                 label='subject'
             )
 
+            # X['related'] = X['Target'].map(lambda x: 1 if x in self.dependent_changes else 0)
 
             # X['subject_sim'] = X[['Source', 'Target']].apply(
             #     clas_util.compute_shared_desc_tokens, args=(self.changes_description,), axis=1
@@ -447,9 +452,9 @@ class PairMetricsService:
             # Supprimer les colonnes inutiles
             X.drop(columns=[
                 'created_source', 'created_target', 'owner_account_id_source', 'owner_account_id_target', 'number_target', 'number_source',
-                'project_source', 'project_target', 'reviewers',
+                'project_source', 'project_target', 'reviewers', 'is_dependent'
             ], axis=1, inplace=True, errors='ignore')
-
+            
             self.logger.info(f"Pair metrics computed for change #{change_number} with {len(X)} pairs.")
             output_path = f"./Files/Results/pairs_metrics_{change_number}.csv"
             X.to_csv(output_path, index=False, encoding="utf-8")
