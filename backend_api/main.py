@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sys
 import os
@@ -20,6 +21,14 @@ from model_predictor import ModelPredictor
 from datetime import datetime
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://review.opendev.org", "http://localhost:8080"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# "http://localhost:8080",
 logger = get_logger()
 data_collector = OpenStackDataCollector()
 mongo = MongoManager()
@@ -44,6 +53,7 @@ class ChangeResponse(BaseModel):
 async def generate_metrics(request: ChangeRequest):
     try:
         change_number = int(request.change_number)
+        print("⏳ Received change_number:", request.change_number)
         # print(change_id)
         # Vérifier si le changement est déjà dans la base de données
         existing_change = mongo.find_change_by_number(change_number)
@@ -97,6 +107,8 @@ async def generate_metrics(request: ChangeRequest):
         
         else: 
             print(f"le changement avec le number = {change_number} y'a pas de dependence avec un autre changement")
+            predicted_pairs = []
+        return predicted_pairs
             
 
             # return ChangeResponse(message="Métriques de nouveaux changements générées.", pairs_generated=False)
